@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Pianitos — Aprende piano con tu teclado</title>
+  <meta name="description" content="Aprende a tocar el piano con tu teclado real. Notas que caen, modo espera y cero castigos.">
+  <meta name="theme-color" content="#151226">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ═══════════ PANTALLA: INICIO ═══════════ -->
+  <section id="screen-home" class="screen">
+    <header class="home-header">
+      <h1>🎹 Pianitos</h1>
+      <div class="home-actions">
+        <button id="midi-chip" class="chip chip-off" title="Estado del teclado">…</button>
+        <button id="btn-settings" class="round-btn" title="Ajustes">⚙️</button>
+      </div>
+    </header>
+
+    <main class="home-main">
+      <div class="song-card">
+        <div class="song-info">
+          <h2>Himno de la Alegría</h2>
+          <p>L. van Beethoven · Nivel ⭐ · Do mayor</p>
+        </div>
+        <div class="song-steps">
+          <button class="mode-btn listen" data-mode="listen">🔊 Escuchar<span class="mini" id="done-listen"></span></button>
+          <button class="mode-btn rh"     data-mode="rh">👉 Mano derecha<span class="mini stars" id="stars-rh">☆☆☆</span></button>
+          <button class="mode-btn lh"     data-mode="lh">👈 Mano izquierda<span class="mini stars" id="stars-lh">☆☆☆</span></button>
+          <button class="mode-btn both"   data-mode="both">✨ ¡Las dos manos!<span class="mini stars" id="stars-both">☆☆☆</span></button>
+        </div>
+      </div>
+      <p class="home-tip">El piano es tu teclado de verdad — la pantalla sólo te enseña qué tocar. 🎹</p>
+    </main>
+
+    <footer class="home-footer">
+      <button id="btn-help" class="link-btn">🔌 ¿Cómo conecto el teclado?</button>
+    </footer>
+  </section>
+
+  <!-- ═══════════ PANTALLA: JUEGO ═══════════ -->
+  <section id="screen-game" class="screen hidden">
+    <header class="game-header">
+      <button id="btn-back" class="round-btn" title="Volver">✕</button>
+      <div class="game-center">
+        <h2 id="game-title">Himno de la Alegría</h2>
+        <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+        <div id="game-text" class="game-text">¡Preparada!</div>
+      </div>
+      <button id="btn-fs" class="round-btn" title="Pantalla completa">⛶</button>
+    </header>
+    <div id="stage-wrap">
+      <canvas id="stage"></canvas>
+      <div id="game-hint" class="game-hint"></div>
+      <div id="rotate-tip" class="rotate-tip">↻ Gira el tablet<br><small>mejor en horizontal</small></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ OVERLAY: CONECTAR TECLADO ═══════════ -->
+  <div id="connect-overlay" class="overlay hidden">
+    <div class="panel">
+      <button id="connect-close" class="round-btn close">✕</button>
+      <h2>🔌 Conecta tu teclado</h2>
+      <ol class="steps">
+        <li>Apaga el teclado y conéctalo con el <b>cable USB</b> al tablet o móvil.</li>
+        <li>Enciéndelo. Si tiene menú USB, elige <b>MIDI</b>.</li>
+        <li>¡Toca cualquier tecla para probar!</li>
+      </ol>
+      <div id="connect-status" class="connect-status">🔌 Esperando…</div>
+      <div id="connect-last-note" class="last-note"></div>
+      <label class="check">
+        <input type="checkbox" id="connect-echo">
+        <span>🔊 <b>Eco en la app</b> — márcalo si al tocar no oyes nada en el teclado</span>
+      </label>
+      <button id="connect-start" class="big-btn" disabled>Esperando teclado…</button>
+      <button id="connect-dev" class="link-btn">No tengo el cable ahora → probar con las teclas del ordenador</button>
+      <div id="dev-keys" class="dev-keys hidden">
+        <p><b>Modo prueba</b> (sólo en ordenador):</p>
+        <p class="kbd">👈 z x c v b = DO RE MI FA SOL &nbsp; · &nbsp; 👉 q w e r t = DO RE MI FA SOL</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OVERLAY: ¡GANADO! ═══════════ -->
+  <div id="win-overlay" class="overlay hidden">
+    <div class="panel">
+      <h2 id="win-title">¡LO CONSEGUISTE!</h2>
+      <div id="win-stars" class="win-stars">
+        <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span>
+      </div>
+      <p id="win-stats" class="win-stats"></p>
+      <input type="hidden" id="win-mode" value="">
+      <div class="win-actions">
+        <button id="win-again" class="big-btn alt">🔁 Otra vez</button>
+        <button id="win-next" class="big-btn">Siguiente ➡️</button>
+        <button id="win-home" class="big-btn alt">🏠 Inicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ OVERLAY: AJUSTES ═══════════ -->
+  <div id="settings-overlay" class="overlay hidden">
+    <div class="panel">
+      <button id="settings-close" class="round-btn close">✕</button>
+      <h2>⚙️ Ajustes</h2>
+      <label class="check">
+        <input type="checkbox" id="set-echo">
+        <span>🔊 Eco en la app (si el teclado no suena por sí solo)</span>
+      </label>
+      <button id="set-reset" class="link-btn danger">🗑️ Borrar estrellas y progreso</button>
+      <p class="version">Pianitos v0.1 · prototipo</p>
+    </div>
+  </div>
+
+  <noscript>Necesitas JavaScript para usar Pianitos.</noscript>
+
+  <script src="js/songs.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/midi.js"></script>
+  <script src="js/keyboard-dev.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
