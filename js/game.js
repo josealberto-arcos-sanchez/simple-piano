@@ -11,6 +11,12 @@ const Game = (() => {
   const RED = '#ef4444';
   const BLACK_SET = new Set([1, 3, 6, 8, 10]); // midi % 12 → tecla negra
 
+  // ── fase 5: ¡Toca libre! (la canción no se para) ──
+  const FREE_GRACE = 0.35;   // pulsos de ventana antes de que la cabeza toque la línea
+  const FREE_TAIL = 0.15;    // margen tras terminar de cruzar el rectángulo
+  const REHIT_MERCY = 0.25;  // s que se ignora un rebote de la misma tecla (sin castigo)
+  const HIT_FADE = 0.6;      // s del destello dorado al acertar
+
   // ── estado ──
   let canvas, ctx, W = 0, H = 0;
   let kb = null;                    // geometría del teclado guía
@@ -21,6 +27,10 @@ const Game = (() => {
   let running = false, rafId = 0, lastT = 0;
   let particles = [], hitFx = [], wrongFlash = null, shake = 0;
   let listenPaused = false;
+  let speed = 1;                    // multiplicador de velocidad (🐢😊🐇, cambiable en vivo)
+  let hitMap = new Map();           // modo libre: id de nota → s de destello dorada restantes
+  let freeStats = { hits: 0, wrong: 0 };
+  let lastHitAt = new Map();        // modo libre: cuándo se acertó cada tecla (anti-rebote)
   let ui = {};
   const pressed = new Set();        // teclas de su piano mantenidas ahora
   let lastProgress = '';
@@ -51,6 +61,7 @@ const Game = (() => {
   function compile() {
     const hand = { rh: 'R', lh: 'L' }[mode];
     notesVis = song.notes.filter((n) => !hand || n.h === hand);
+    notesVis.forEach((n, i) => { n.id = i; });   // id por ocurrencia (lo usa el modo libre)
     const map = new Map();
     for (const n of notesVis) {
       if (!map.has(n.b)) map.set(n.b, []);
@@ -59,8 +70,8 @@ const Game = (() => {
     events = [...map.entries()].sort((a, b) => a[0] - b[0]).map(([b, ns]) => ({ beat: b, notes: ns }));
   }
 
-  function start(s, m, uiCallbacks) {
-    song = s; mode = m; ui = uiCallbacks;
+  function start(s, m, uiCallbacks, spd = 1) {
+    song = s; mode = m; ui = uiCallbacks; speed = spd > 0 ? spd : 1;
     canvas = document.getElementById('stage');
     ctx = canvas.getContext('2d');
     kb = { whitesMidi: [] };
@@ -69,6 +80,7 @@ const Game = (() => {
     compile();
     songBeat = -2; eventIdx = 0; pending = null; errors = 0;
     particles = []; hitFx = []; wrongFlash = null; shake = 0;
+    hitMap = new Map(); freeStats = { hits: 0, wrong: 0 }; lastHitAt = new Map();
     listenPaused = false; pressed.clear(); lastProgress = '';
     resize();
     running = true; lastT = performance.now();
@@ -77,6 +89,10 @@ const Game = (() => {
   }
 
   function stop() { running = false; cancelAnimationFrame(rafId); }
+
+  // Velocidad de la canción: tempo × multiplicador (ajustable en vivo)
+  function effBpm() { return song.bpm * speed; }
+  function setSpeed(spd) { if (spd > 0) speed = spd; }
 
   function resize() {
     if (!canvas) return;
@@ -109,31 +125,36 @@ const Game = (() => {
     if (wrongFlash) { wrongFlash.t -= dt; if (wrongFlash.t <= 0) wrongFlash = null; }
     hitFx.forEach((f) => (f.t -= dt));
     hitFx = hitFx.filter((f) => f.t > 0);
+    if (hitMap.size) for (const [id, t] of hitMap) { if (t > 0) hitMap.set(id, Math.max(0, t - dt)); }
     particles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; p.life -= dt; });
     particles = particles.filter((p) => p.life > 0);
 
     if (mode === 'listen') {
       if (!listenPaused) {
-        const bps = song.bpm / 60;
+        const bps = effBpm() / 60;
         const prev = songBeat;
         songBeat += bps * dt;
         for (const n of notesVis) {
           if (n.b > prev && n.b <= songBeat) {
-            AudioEngine.playNote(n.m, { dur: n.d * 60 / song.bpm, vel: 95 });
+            AudioEngine.playNote(n.m, { dur: n.d * 60 / effBpm(), vel: 95 });
           }
         }
         if (songBeat >= song.totalBeats + 2.5) { finish(true); return; }
       }
+    } else if (mode === 'free') {
+      // fase libre: la canción avanza siempre — sin frenadas ni esperas
+      songBeat += (effBpm() / 60) * dt;
+      if (songBeat >= song.totalBeats + 1.5) { finishFree(); return; }
     } else {
       if (!pending && eventIdx < events.length) {
         const target = events[eventIdx].beat;
         if (songBeat < target) {
-          const bps = Math.max(1.1, song.bpm / 60);
+          const bps = Math.max(1.1, effBpm() / 60);
           const BRAKE = 0.6;                                  // pulsos de frenada
           const dist = target - songBeat;
-          let speed = bps;
-          if (dist < BRAKE) speed = bps * Math.sqrt(Math.max(0, dist) / BRAKE); // ease-out
-          songBeat = Math.min(target, songBeat + speed * dt);
+          let sp = bps;
+          if (dist < BRAKE) sp = bps * Math.sqrt(Math.max(0, dist) / BRAKE); // ease-out
+          songBeat = Math.min(target, songBeat + sp * dt);
           if (target - songBeat < 0.004) songBeat = target;   // enganchar en la línea
         }
         if (songBeat === target) {
@@ -148,15 +169,19 @@ const Game = (() => {
     }
 
     const total = events.length || 1;
-    const frac = mode === 'listen'
+    const free = mode === 'free';
+    const frac = mode === 'listen' || free
       ? Math.max(0, songBeat / song.totalBeats)
       : eventIdx / total;
     const meas = Math.min(song.totalBeats / song.beatsPerMeasure,
       Math.floor(Math.max(0, songBeat) / song.beatsPerMeasure) + 1);
-    const str = `${mode}:${frac.toFixed(3)}:${meas}:${errors}`;
+    // en modo libre, idx/total son aciertos/notas totales (para el marcador)
+    const idx = free ? freeStats.hits : eventIdx;
+    const shown = free ? notesVis.length : total;
+    const str = `${mode}:${frac.toFixed(3)}:${meas}:${errors}:${idx}`;
     if (str !== lastProgress && ui.progress) {
       lastProgress = str;
-      ui.progress(frac, meas, songBeat, eventIdx, total, errors);
+      ui.progress(frac, meas, songBeat, idx, shown, errors);
     }
   }
 
@@ -165,6 +190,7 @@ const Game = (() => {
     if (!running) return;
     pressed.add(midi);
     if (mode === 'listen') return;
+    if (mode === 'free') { freeNoteon(midi); return; }
     if (pending && pending.need.has(midi)) {
       if (pending.got.has(midi)) return;      // repetir la misma tecla no penaliza
       pending.got.add(midi);
@@ -183,9 +209,36 @@ const Game = (() => {
   }
   function noteoff(midi) { pressed.delete(midi); }
 
-  function spawnParticles(midi) {
+  // Fase libre: ¿hay un rectángulo de esa tecla cruzando la línea dorada ahora?
+  // Sí → acierto (destello dorado + partículas + "ding"). No → ayudita (rojo suave).
+  function freeNoteon(midi) {
+    let best = null;
+    for (const n of notesVis) {
+      if (n.m !== midi || hitMap.has(n.id)) continue;      // esa ocurrencia ya está acertada
+      const from = n.b - FREE_GRACE;
+      const to = n.b + Math.max(n.d, 0.5) + FREE_TAIL;
+      if (songBeat >= from && songBeat <= to && (!best || n.b < best.b)) best = n;
+    }
+    if (best) {
+      hitMap.set(best.id, HIT_FADE);
+      freeStats.hits++;
+      hitFx.push({ midi, t: 0.5 });
+      spawnParticles(midi, 14);
+      lastHitAt.set(midi, performance.now());
+      AudioEngine.sfx('good');
+      return;
+    }
+    const last = lastHitAt.get(midi);
+    if (last !== undefined && performance.now() - last < REHIT_MERCY * 1000) return; // rebote: se ignora
+    freeStats.wrong++;
+    wrongFlash = { midi, t: 0.55 };
+    shake = 0.55;
+    AudioEngine.sfx('wrong');
+  }
+
+  function spawnParticles(midi, count = 10) {
     const x = keyX(midi), y = kb.hitY;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < count; i++) {
       particles.push({
         x, y,
         vx: (Math.random() - 0.5) * 260,
@@ -200,6 +253,11 @@ const Game = (() => {
   function finish(listen) {
     stop();
     if (ui.finish) ui.finish({ listen, errors });
+  }
+
+  function finishFree() {
+    stop();
+    if (ui.finish) ui.finish({ free: true, hits: freeStats.hits, total: notesVis.length, wrong: freeStats.wrong });
   }
 
   // clic/toque sobre el escenario: pausa en modo Escuchar
@@ -265,6 +323,10 @@ const Game = (() => {
       const h = Math.max(20, n.d * kb.pxBeat - 4);
       if (y < -h - 20 || y > kb.hitY + 24) continue;
 
+      // modo libre: nota acertada → destello dorado que se apaga y desaparece
+      const gold = mode === 'free' ? hitMap.get(n.id) : undefined;
+      if (gold !== undefined && gold <= 0) continue;
+
       const isPend = pending && pending.ev.notes.includes(n);
       const isHit = pending && pending.got.has(n.m);
       const isPast = n.b < songBeat - 0.01;
@@ -273,12 +335,20 @@ const Game = (() => {
       let dx = 0;
       if (isPend && shake > 0) dx = Math.sin(now * 42) * 5 * (shake / 0.55);
 
-      ctx.globalAlpha = isPast && !isPend ? 0.45 : (isHit ? 0.55 : 1);
+      ctx.globalAlpha = gold !== undefined
+        ? 0.25 + 0.75 * (gold / HIT_FADE)
+        : (isPast && !isPend ? 0.45 : (isHit ? 0.55 : 1));
       // cuerpo
       const grad = ctx.createLinearGradient(0, y - h, 0, y);
-      grad.addColorStop(0, c.edge);
-      grad.addColorStop(0.25, c.fill);
-      grad.addColorStop(1, c.fill);
+      if (gold !== undefined) {
+        grad.addColorStop(0, '#fff7d6');
+        grad.addColorStop(0.25, GOLD);
+        grad.addColorStop(1, '#f59e0b');
+      } else {
+        grad.addColorStop(0, c.edge);
+        grad.addColorStop(0.25, c.fill);
+        grad.addColorStop(1, c.fill);
+      }
       ctx.fillStyle = grad;
       roundRect(x + dx, y - h, w, h, 9);
       ctx.fill();
@@ -424,7 +494,7 @@ const Game = (() => {
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.font = `800 ${Math.max(22, H * 0.045)}px system-ui, sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    const msg = mode === 'listen' ? '🔊 Escucha…' : '¡Preparada…!';
+    const msg = mode === 'listen' ? '🔊 Escucha…' : mode === 'free' ? '🎵 ¡Tú tocas!' : '¡Preparada…!';
     ctx.fillText(msg, W / 2, kb.hitY * 0.4);
   }
 
@@ -433,11 +503,12 @@ const Game = (() => {
   // depuración (consola del navegador): Game._dbg() · Game._step(dt)
   function _dbg() {
     return {
-      mode, running, songBeat: +songBeat.toFixed(2), eventIdx, errors,
+      mode, running, speed, songBeat: +songBeat.toFixed(2), eventIdx, errors,
+      free: mode === 'free' ? { ...freeStats, total: notesVis.length } : null,
       pending: pending ? { beat: pending.ev.beat, need: [...pending.need], got: [...pending.got] } : null,
       W: W.toFixed(0), H: H.toFixed(0),
     };
   }
 
-  return { start, stop, noteon, noteoff, tap, resize, _dbg, _step: step };
+  return { start, stop, noteon, noteoff, tap, resize, setSpeed, _dbg, _step: step };
 })();

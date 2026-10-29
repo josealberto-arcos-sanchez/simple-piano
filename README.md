@@ -11,9 +11,14 @@ Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 1. Conecta el teclado de casa al tablet/móvil con el cable USB (en el teclado,
    si hay menú USB, elige **MIDI**).
 2. Abre la app con **Chrome** (es el navegador que lee teclados MIDI en Android).
-3. Progresión: **Escuchar → Mano derecha → Mano izquierda → ¡Las dos manos!**
+3. Progresión: **Escuchar → Mano derecha → Mano izquierda → ¡Las dos manos! → 🎵 ¡Toca libre!**
    - Las teclas objetivo se iluminan con el número de dedo (👉 verde derecha, 👈 morado izquierda).
    - **Modo espera**: las notas frenan en la línea dorada y no avanzan hasta acertar. Sin reloj.
+   - **¡Toca libre!** (fase 5): la canción avanza sin parar. Si tocas la nota mientras su
+     rectángulo cruza la línea dorada → destello dorado y partículas; si la tocas fuera →
+     parpadeo rojo suave (una "ayudita").
+   - **Velocidad** 🐢 lenta (×0,7) · 😊 normal · 🐇 rápida (×1,4): se elige en la pantalla
+     de inicio o con el botón redondo del juego, y afecta a todas las fases.
    - Error = la tecla parpadea en rojo suave. Nada se pierde nunca.
    - Al terminar: estrellas (0 errores = 3⭐) y confeti.
 
@@ -70,7 +75,7 @@ js/songs.js         Datos de las canciones (añadir una canción = añadir un ar
 js/audio.js         Sonido (síntesis Web Audio: modo Escuchar + eco del teclado)
 js/midi.js          Lectura del teclado real (Web MIDI)
 js/keyboard-dev.js  Modo prueba con las teclas del ordenador
-js/game.js          Motor: notas que caen, modo espera, feedback
+js/game.js          Motor: notas que caen, modo espera, fase libre, velocidad, feedback
 js/app.js           Navegación, progreso (localStorage), conexión, celebración
 manifest.json       PWA instalable
 sw.js               Cache offline
@@ -79,8 +84,8 @@ scripts/gen-icons.ps1  Regenera los iconos PNG
 
 ## Hoja de ruta
 
-- **v0.1 (esto)**: 1 canción, 4 modos, MIDI por USB, instalable, offline.
-- **v0.2**: 2-3 canciones más (Estrellita, Cumpleaños feliz), tempo lento/normal.
+- **v0.1 (esto)**: 1 canción, 5 fases (la última: ¡Toca libre!), velocidad 🐢😊🐇, MIDI por USB, instalable, offline.
+- **v0.2**: 2-3 canciones más (Estrellita, Cumpleaños feliz).
 - **v0.3**: tocar con acompañamiento (la app toca la otra mano), estadísticas para padres.
 - **v1.0**: mini-método de 10-12 canciones por niveles.
 

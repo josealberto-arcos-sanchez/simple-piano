@@ -17,6 +17,8 @@ SimplyPiano en casa, pero hecho a la medida de la niña y sin suscripciones:
 | Decisión | Por qué |
 |---|---|
 | Modo espera (la nota no avanza hasta acertar) | Sin presión de ritmo en el arranque; el error no rompe el flujo |
+| Fase 5 "¡Toca libre!" (la canción no se para) | El objetivo final: leer las notas y tocar sin ayuda; acierto dentro del rectángulo = destello dorado, fuera = rojo suave |
+| Velocidad ajustable (🐢 ×0,7 · 😊 ×1 · 🐇 ×1,4) | El adulto adapta el reto en cualquier fase; nunca hay un muro de tempo |
 | Manos separadas antes que juntas | Camino clásico (Bastien, Faber, SimplyPiano): RH → LH → ambas |
 | Posición fija (5 dedos por mano, sin saltos) | La primera pieza debe ser *tocable*, no *descifrable* |
 | Himno de la Alegría como canción 1 | Suena "a música de verdad" siendo 5 notas por mano = orgillo |

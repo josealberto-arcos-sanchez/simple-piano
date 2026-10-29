@@ -9,9 +9,17 @@ const App = (() => {
     rh:     { title: '👉 Mano derecha', hint: 'Toca en tu piano las teclas verdes. Sin prisa: te esperan.', practice: true },
     lh:     { title: '👈 Mano izquierda', hint: 'Ahora las moradas. Sin prisa: te esperan.', practice: true },
     both:   { title: '✨ ¡Las dos manos!', hint: '¡Verdes y moradas juntas! Tú puedes.', practice: true },
+    free:   { title: '🎵 ¡Toca libre!', hint: '¡Ahora la música no se para! Toca cada nota cuando su rectángulo cruce la línea dorada. Cambia la velocidad con el botón de arriba.', practice: true },
   };
-  const NEXT = { rh: 'lh', lh: 'both' };
-  const NEXT_LABEL = { rh: '👈 Mano izquierda', lh: '✨ ¡Las dos manos!' };
+  const NEXT = { rh: 'lh', lh: 'both', both: 'free' };
+  const NEXT_LABEL = { rh: '👈 Mano izquierda', lh: '✨ ¡Las dos manos!', both: '🎵 ¡Toca libre!' };
+
+  // Velocidad de la canción: multiplicador del tempo
+  const SPEEDS = [
+    { v: 0.7, icon: '🐢', label: 'Lenta' },
+    { v: 1,   icon: '😊', label: 'Normal' },
+    { v: 1.4, icon: '🐇', label: 'Rápida' },
+  ];
 
   let song = SONGS[0];
   let currentMode = null;
@@ -23,9 +31,10 @@ const App = (() => {
   const PKEY = 'simple-piano-progress-v1';
   const SKEY = 'simple-piano-settings-v1';
   let progress = {};
-  let settings = { echo: false };
+  let settings = { echo: false, speed: 1 };
   try { progress = JSON.parse(localStorage.getItem(PKEY)) || {}; } catch (e) { progress = {}; }
   try { settings = Object.assign(settings, JSON.parse(localStorage.getItem(SKEY)) || {}); } catch (e) { /* ignore */ }
+  if (!SPEEDS.some((s) => s.v === settings.speed)) settings.speed = 1;   // valor desconocido → normal
 
   function saveProgress() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (e) { /* ignore */ } }
   function saveSettings() { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) { /* ignore */ } }
@@ -52,9 +61,31 @@ const App = (() => {
     });
   }
 
+  // ── velocidad de la canción (🐢 lenta · 😊 normal · 🐇 rápida) ──
+  function speedPreset() { return SPEEDS.find((s) => s.v === settings.speed) || SPEEDS[1]; }
+
+  function updateSpeedUI() {
+    const p = speedPreset();
+    $$('.speed-btn').forEach((b) => b.classList.toggle('on', +b.dataset.speed === settings.speed));
+    const btn = $('#btn-speed');
+    if (btn) { btn.textContent = p.icon; btn.title = `Velocidad: ${p.label}`; }
+  }
+
+  function applySpeed(v) {
+    settings.speed = v;
+    saveSettings();
+    Game.setSpeed(v);
+    updateSpeedUI();
+    if (!$('#screen-game').classList.contains('hidden')) {
+      const p = speedPreset();
+      showHint(`Velocidad: ${p.icon} ${p.label}`);
+    }
+  }
+
   // ── ciclo de vida ──
   function init() {
     applyEcho();
+    updateSpeedUI();
     AudioEngine.unlockOnGesture();
 
     MIDI.init();
@@ -106,6 +137,7 @@ const App = (() => {
     $('#stars-rh').textContent = fill('rh');
     $('#stars-lh').textContent = fill('lh');
     $('#stars-both').textContent = fill('both');
+    $('#stars-free').textContent = fill('free');
     $('#done-listen').textContent = q('listen');
   }
 
@@ -143,13 +175,14 @@ const App = (() => {
       progress: (frac, meas, beat, idx, total, errors) => {
         $('#bar-fill').style.width = `${(frac * 100).toFixed(1)}%`;
         const totalMeas = song.totalBeats / song.beatsPerMeasure;
+        const head = `Compás ${Math.min(totalMeas, meas)}/${totalMeas}`;
         $('#game-text').textContent =
-          currentMode === 'listen'
-            ? `Compás ${Math.min(totalMeas, meas)}/${totalMeas}`
-            : `Compás ${Math.min(totalMeas, meas)}/${totalMeas} · Nota ${idx}/${total}`;
+          currentMode === 'listen' ? head
+          : currentMode === 'free' ? `${head} · 🎵 ${idx}/${total}`
+          : `${head} · Nota ${idx}/${total}`;
       },
       finish: onFinish,
-    });
+    }, settings.speed);
     showHint(m.hint);
   }
 
@@ -171,8 +204,22 @@ const App = (() => {
       AudioEngine.sfx('win');
       return;
     }
-    // estrellas: 0 errores = 3 · ≤3 = 2 · resto 1 (cero castigo, siempre se gana)
-    const stars = res.errors === 0 ? 3 : res.errors <= 3 ? 2 : 1;
+    // estrellas (cero castigo, siempre se gana):
+    // · fases con espera: 0 ayuditas = 3 · ≤3 = 2 · resto 1
+    // · fase libre: ≥85% de notas = 3 · ≥55% = 2 · resto 1
+    let stars, stats;
+    if (res.free) {
+      const pct = res.total ? res.hits / res.total : 0;
+      stars = pct >= 0.85 ? 3 : pct >= 0.55 ? 2 : 1;
+      stats = res.wrong === 0
+        ? `¡Tocaste ${res.hits} de ${res.total} notas y ninguna fuera de su sitio!`
+        : `¡Tocaste ${res.hits} de ${res.total} notas! (${res.wrong} notitas fuera de su rectángulo)`;
+    } else {
+      stars = res.errors === 0 ? 3 : res.errors <= 3 ? 2 : 1;
+      stats = res.errors === 0
+        ? '¡Perfecto, sin ninguna ayudita!'
+        : `Sólo ${res.errors} ayudita${res.errors > 1 ? 's' : ''} — ¡repite y a por las 3 estrellas!`;
+    }
     setStars(currentMode, stars);
     AudioEngine.sfx('win');
 
@@ -182,9 +229,7 @@ const App = (() => {
       el.classList.remove('pop');
       if (i < stars) { void el.offsetWidth; el.classList.add('pop'); }
     });
-    $('#win-stats').textContent = res.errors === 0
-      ? '¡Perfecto, sin ninguna ayudita!'
-      : `Sólo ${res.errors} ayudita${res.errors > 1 ? 's' : ''} — ¡repite y a por las 3 estrellas!`;
+    $('#win-stats').textContent = stats;
     const next = NEXT[currentMode];
     const btn = $('#win-next');
     if (next) { btn.classList.remove('hidden'); btn.textContent = `Siguiente: ${NEXT_LABEL[currentMode]}`; }
@@ -295,6 +340,17 @@ const App = (() => {
     });
 
     $('#stage').addEventListener('pointerdown', () => Game.tap());
+
+    // velocidad de la canción
+    $$('.speed-btn').forEach((b) => b.addEventListener('click', () => {
+      AudioEngine.sfx('tap');
+      applySpeed(+b.dataset.speed);
+    }));
+    $('#btn-speed').addEventListener('click', () => {
+      AudioEngine.sfx('tap');
+      const i = SPEEDS.findIndex((s) => s.v === settings.speed);
+      applySpeed(SPEEDS[(i + 1) % SPEEDS.length].v);
+    });
 
     // overlay conexión
     $('#connect-start').addEventListener('click', () => {
