@@ -20,8 +20,8 @@ const App = (() => {
   let echoVoices = new Map();
 
   // ── progreso (localStorage) ──
-  const PKEY = 'pianitos-progress-v1';
-  const SKEY = 'pianitos-settings-v1';
+  const PKEY = 'simple-piano-progress-v1';
+  const SKEY = 'simple-piano-settings-v1';
   let progress = {};
   let settings = { echo: false };
   try { progress = JSON.parse(localStorage.getItem(PKEY)) || {}; } catch (e) { progress = {}; }
@@ -208,7 +208,7 @@ const App = (() => {
     const startBtn = $('#connect-start');
     let html;
     if (st.supported === false) {
-      html = '⚠️ Este navegador no lee teclados MIDI.<br>Abre Pianitos con <b>Chrome</b> y prueba otra vez.';
+      html = '⚠️ Este navegador no lee teclados MIDI.<br>Abre Simple Piano con <b>Chrome</b> y prueba otra vez.';
     } else if (st.ready) {
       html = `✅ ¡Perfecto! <b>${st.lastName || 'Teclado'}</b> conectado y sonando.`;
     } else if (st.device) {

@@ -1,4 +1,4 @@
-# Genera los iconos de Pianitos (PNG 192 / 512 / 512 maskable).
+# Genera los iconos de Simple Piano (PNG 192 / 512 / 512 maskable).
 # Uso:  powershell -ExecutionPolicy Bypass -File scripts\gen-icons.ps1
 
 Add-Type -AssemblyName System.Drawing

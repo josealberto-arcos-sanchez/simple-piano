@@ -1,4 +1,4 @@
-# 🎹 Pianitos
+# 🎹 Simple Piano
 
 App web para que una niña de 8 años aprenda a tocar el piano **con su teclado real**,
 estilo SimplyPiano: notas que caen en la pantalla del tablet, la app escucha el
@@ -20,7 +20,7 @@ Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 ## Probar en el ordenador (sin teclado)
 
 ```powershell
-cd C:\jose_alberto\proyectos\learn-piano
+cd C:\jose_alberto\proyectos\simple-piano
 powershell -ExecutionPolicy Bypass -File scripts\serve.ps1
 ```
 
@@ -34,18 +34,18 @@ Abre <http://127.0.0.1:8080>. En la pantalla de conexión, pulsa
 
 ## Publicar en GitHub Pages
 
-1. Crea un repositorio en GitHub (p. ej. `pianitos`) — **público** (Pages gratis no funciona en privados en cuentas gratuitas).
+1. Crea un repositorio en GitHub (p. ej. `simple-piano`) — **público** (Pages gratis no funciona en privados en cuentas gratuitas).
 2. Sube el proyecto:
    ```powershell
-   cd C:\jose_alberto\proyectos\learn-piano
+   cd C:\jose_alberto\proyectos\simple-piano
    git init
    git add -A
-   git commit -m "Pianitos v0.1"
-   git remote add origin https://github.com/TU_USUARIO/pianitos.git
+   git commit -m "Simple Piano v0.1"
+   git remote add origin https://github.com/TU_USUARIO/simple-piano.git
    git push -u origin main
    ```
 3. En GitHub: **Settings → Pages → Branch: main → Save**.
-4. En un minuto la app está en `https://TU_USUARIO.github.io/pianitos/`
+4. En un minuto la app está en `https://TU_USUARIO.github.io/simple-piano/`
 
 ### Instalarla como app en Android
 

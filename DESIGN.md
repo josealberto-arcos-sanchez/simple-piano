@@ -1,4 +1,4 @@
-# Pianitos — Documento de diseño
+# Simple Piano — Documento de diseño
 
 > **v0.1** · Octubre 2026 · documento vivo, igual que *plan-de-juego.md* de Wordlings.
 > Hereda su filosofía: fase mínima que valide una sola cosa — **¿quiere volver a tocar mañana?**
@@ -34,7 +34,7 @@ SimplyPiano en casa, pero hecho a la medida de la niña y sin suscripciones:
 
 ## Preguntas abiertas (para la v0.2)
 
-1. ¿Cómo se llama la app de verdad? (Pianitos es provisional; ideas: Teclitas, DoReMi, Pianín)
+1. ¿Cómo se llama la app de verdad? (Simple Piano es provisional; ideas: Teclitas, DoReMi, Pianín)
 2. ¿La niña prefiere las notas cayendo o empezar con las notas fijas y grandes?
 3. ¿El teclado de casa tiene altavoces? (afecta al eco por defecto)
 4. ¿Segunda canción: Estrellita o Cumpleaños feliz?
