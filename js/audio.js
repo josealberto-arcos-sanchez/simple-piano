@@ -104,6 +104,10 @@ const AudioEngine = (() => {
       g.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
       g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
       o.start(t); o.stop(t + 0.2);
+    } else if (kind === 'good') {
+      // "ding" de acierto en la fase libre (suave, para no tapar su piano)
+      blip(1046.5, t, 0.12, 0.10);
+      blip(1568, t + 0.06, 0.18, 0.09);
     } else if (kind === 'win') {
       const seq = [523.25, 659.25, 783.99, 1046.5, 1318.5];
       seq.forEach((f, i) => blip(f, t + i * 0.09, 0.35, 0.2));
