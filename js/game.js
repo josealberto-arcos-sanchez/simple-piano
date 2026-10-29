@@ -16,6 +16,7 @@ const Game = (() => {
   const FREE_TAIL = 0.15;    // margen tras terminar de cruzar el rectángulo
   const REHIT_MERCY = 0.25;  // s que se ignora un rebote de la misma tecla (sin castigo)
   const HIT_FADE = 0.6;      // s del destello dorado al acertar
+  const FREE_COUNTDOWN = 3;  // s de cuenta atrás (3, 2, 1) antes de que empiece la canción
 
   // ── estado ──
   let canvas, ctx, W = 0, H = 0;
@@ -30,6 +31,7 @@ const Game = (() => {
   let speed = 1;                    // multiplicador de velocidad (🐢😊🐇, cambiable en vivo)
   let hitMap = new Map();           // modo libre: id de nota → s de destello dorada restantes
   let freeStats = { hits: 0, wrong: 0 };
+  let countdown = 0;                // modo libre: s que faltan para que empiece la canción
   let lastHitAt = new Map();        // modo libre: cuándo se acertó cada tecla (anti-rebote)
   let ui = {};
   const pressed = new Set();        // teclas de su piano mantenidas ahora
@@ -81,6 +83,7 @@ const Game = (() => {
     songBeat = -2; eventIdx = 0; pending = null; errors = 0;
     particles = []; hitFx = []; wrongFlash = null; shake = 0;
     hitMap = new Map(); freeStats = { hits: 0, wrong: 0 }; lastHitAt = new Map();
+    countdown = m === 'free' ? FREE_COUNTDOWN : 0;
     listenPaused = false; pressed.clear(); lastProgress = '';
     resize();
     running = true; lastT = performance.now();
@@ -142,9 +145,13 @@ const Game = (() => {
         if (songBeat >= song.totalBeats + 2.5) { finish(true); return; }
       }
     } else if (mode === 'free') {
-      // fase libre: la canción avanza siempre — sin frenadas ni esperas
-      songBeat += (effBpm() / 60) * dt;
-      if (songBeat >= song.totalBeats + 1.5) { finishFree(); return; }
+      // fase libre: cuenta atrás y luego la canción avanza siempre — sin frenadas ni esperas
+      if (countdown > 0) {
+        countdown = Math.max(0, countdown - dt);
+      } else {
+        songBeat += (effBpm() / 60) * dt;
+        if (songBeat >= song.totalBeats + 1.5) { finishFree(); return; }
+      }
     } else {
       if (!pending && eventIdx < events.length) {
         const target = events[eventIdx].beat;
@@ -190,7 +197,7 @@ const Game = (() => {
     if (!running) return;
     pressed.add(midi);
     if (mode === 'listen') return;
-    if (mode === 'free') { freeNoteon(midi); return; }
+    if (mode === 'free') { if (countdown <= 0) freeNoteon(midi); return; }
     if (pending && pending.need.has(midi)) {
       if (pending.got.has(midi)) return;      // repetir la misma tecla no penaliza
       pending.got.add(midi);
@@ -291,7 +298,8 @@ const Game = (() => {
     drawHitLine();
     drawKeyboard(now);
     drawParticles();
-    if (songBeat < 0) drawReady();
+    if (countdown > 0) drawCountdown();
+    else if (songBeat < 0) drawReady();
   }
 
   function drawGrid() {
@@ -496,6 +504,18 @@ const Game = (() => {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     const msg = mode === 'listen' ? '🔊 Escucha…' : mode === 'free' ? '🎵 ¡Tú tocas!' : '¡Preparada…!';
     ctx.fillText(msg, W / 2, kb.hitY * 0.4);
+  }
+
+  function drawCountdown() {
+    const n = Math.ceil(countdown);
+    const frac = countdown - Math.floor(countdown);   // 1 → 0 dentro de cada número
+    ctx.save();
+    ctx.globalAlpha = 0.35 + 0.65 * frac;
+    ctx.fillStyle = GOLD;
+    ctx.font = `900 ${Math.max(64, H * 0.28) * (1 + 0.15 * frac)}px system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(n), W / 2, kb.hitY * 0.45);
+    ctx.restore();
   }
 
   window.addEventListener('resize', () => { if (running) resize(); });
