@@ -31,10 +31,11 @@ const App = (() => {
   const PKEY = 'simple-piano-progress-v1';
   const SKEY = 'simple-piano-settings-v1';
   let progress = {};
-  let settings = { echo: false, speed: 1 };
+  let settings = { echo: false, speed: 1, songId: SONGS[0].id };
   try { progress = JSON.parse(localStorage.getItem(PKEY)) || {}; } catch (e) { progress = {}; }
   try { settings = Object.assign(settings, JSON.parse(localStorage.getItem(SKEY)) || {}); } catch (e) { /* ignore */ }
   if (!SPEEDS.some((s) => s.v === settings.speed)) settings.speed = 1;   // valor desconocido → normal
+  song = SONGS.find((s) => s.id === settings.songId) || SONGS[0];
 
   function saveProgress() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (e) { /* ignore */ } }
   function saveSettings() { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) { /* ignore */ } }
@@ -124,8 +125,32 @@ const App = (() => {
     $$('.screen').forEach((s) => s.classList.toggle('hidden', s.id !== `screen-${name}`));
   }
 
+  function selectSong(id) {
+    const found = SONGS.find((s) => s.id === id);
+    if (!found) return;
+    song = found;
+    settings.songId = song.id;
+    saveSettings();
+    renderHome();
+  }
+
   function renderHome() {
     updateChip();
+    $('#song-title').textContent = `${song.emoji} ${song.title}`;
+    $('#song-sub').textContent = [song.composer, song.subtitle].filter(Boolean).join(' · ');
+    const picker = $('#song-picker');
+    if (picker) {
+      picker.classList.toggle('hidden', SONGS.length <= 1);
+      picker.innerHTML = '';
+      SONGS.forEach((s) => {
+        const b = document.createElement('button');
+        b.className = 'song-tab' + (s.id === song.id ? ' on' : '');
+        const done = progress[s.id] && progress[s.id].free ? ' ⭐' : '';
+        b.textContent = `${s.emoji} ${s.title}${done}`;
+        b.addEventListener('click', () => { AudioEngine.sfx('tap'); selectSong(s.id); });
+        picker.appendChild(b);
+      });
+    }
     const fill = (mode) => {
       const s = starsOf(mode);
       return s ? '⭐'.repeat(s) : '☆☆☆';
