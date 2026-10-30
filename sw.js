@@ -3,7 +3,7 @@
 // (stale-while-revalidate), así los cambios llegan en la siguiente carga.
 // Para cambios de estructura, sube la versión CACHE para limpiar caches viejos.
 
-const CACHE = 'simple-piano-v0.2.2';
+const CACHE = 'simple-piano-v0.2.3';
 const CORE = [
   './',
   './index.html',
@@ -21,7 +21,14 @@ const CORE = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => Promise.all(CORE.map((url) => fetch(url, { cache: 'reload' }).then((res) => {
+        if (!res.ok) throw new Error(url);
+        return c.put(url, res);
+      }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {

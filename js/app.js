@@ -334,8 +334,35 @@ const App = (() => {
   // ── service worker (instalable / offline) ──
   function registerSW() {
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      navigator.serviceWorker.register('sw.js').catch(() => { /* ignore */ });
+      navigator.serviceWorker.register('sw.js').then((reg) => {
+        reg.update();
+      }).catch(() => { /* ignore */ });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing && $('#screen-game').classList.contains('hidden')) {
+          refreshing = true;
+          location.reload();
+        }
+      });
     }
+  }
+
+  async function forceUpdate() {
+    const btn = $('#set-update');
+    btn.textContent = '⏳ Actualizando…';
+    btn.disabled = true;
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) { /* ignore */ }
+    location.reload();
   }
 
   // ── UI ──
@@ -415,6 +442,7 @@ const App = (() => {
     $('#set-echo').addEventListener('change', (e) => {
       settings.echo = e.target.checked; saveSettings(); applyEcho();
     });
+    $('#set-update').addEventListener('click', forceUpdate);
     $('#set-reset').addEventListener('click', () => {
       if (confirm('¿Borrar estrellas y progreso?')) {
         progress = {}; saveProgress(); renderHome();
