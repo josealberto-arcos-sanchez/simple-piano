@@ -403,6 +403,11 @@ const App = (() => {
       const i = SPEEDS.findIndex((s) => s.v === settings.speed);
       applySpeed(SPEEDS[(i + 1) % SPEEDS.length].v);
     });
+    // Volver a empezar la canción desde el principio (por si se equivoca)
+    $('#btn-restart').addEventListener('click', () => {
+      AudioEngine.sfx('tap');
+      launchGame();
+    });
 
     // overlay conexión
     $('#connect-start').addEventListener('click', () => {

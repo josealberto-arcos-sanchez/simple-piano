@@ -12,4 +12,6 @@
    - **Velocidad** 🐢 lenta (×0,7) · 😊 normal · 🐇 rápida (×1,4): se elige en la pantalla
      de inicio o con el botón redondo del juego, y afecta a todas las fases.
    - Error = la tecla parpadea en rojo suave. Nada se pierde nunca.
+   - **Volver a empezar** 🔁 (botón del juego): reinicia la canción actual desde el principio,
+      por si quiere repetirla perfecta. Disponible en todas las fases.
    - Al terminar: estrellas (0 errores = 3⭐) y confeti.
