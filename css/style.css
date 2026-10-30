@@ -163,6 +163,7 @@ body {
   flex-shrink: 0;
 }
 .round-btn:active { transform: scale(0.92); }
+.round-btn.restart { background: rgba(251, 191, 36, 0.2); border: 1px solid rgba(251, 191, 36, 0.6); }
 
 .link-btn {
   background: none;
