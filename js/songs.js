@@ -1,6 +1,7 @@
 // Canciones del método.
 // Cada nota: { m: nota MIDI, b: pulso de inicio, d: duración en pulsos, h: mano ('R'|'L'), f: dedo }
 // MIDI: DO central (C4) = 60 · DO grave (C3) = 48. Dedos: 1 = pulgar … 5 = meñique.
+// Cada canción en SONGS tiene los campos: id, title, composer, subtitle (opcional, ej. 'Nivel ⭐ · Do mayor'), emoji, bpm, beatsPerMeasure, totalBeats, whiteFrom, whiteTo, notes.
 
 const NOTE_NAMES = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
 function midiToName(m) { return NOTE_NAMES[((m % 12) + 12) % 12]; }
@@ -14,6 +15,7 @@ const ODE_TO_JOY = {
   id: 'himno-alegria',
   title: 'Himno de la Alegría',
   composer: 'L. van Beethoven',
+  subtitle: 'Nivel ⭐ · Do mayor',
   emoji: '🎶',
   bpm: 84,                 // tempo del modo Escuchar
   beatsPerMeasure: 4,
