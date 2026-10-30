@@ -33,6 +33,7 @@ SimplyPiano en casa, pero hecho a la medida de la niña y sin suscripciones:
 - Canción = array de `{nota MIDI, pulso, duración, mano, dedo}` → añadir canciones es trivial.
 - Canvas para las notas que caen (60 fps suaves incluso en tablets modestas).
 - Web Audio sintetizado (sin samples): suficiente para el modo Escuchar y el eco.
+- Service Worker (`sw.js`) con caché *stale-while-revalidate*: arranca al instante sin internet, pero retrasa las novedades una apertura. Por eso **cada publicación debe subir `CACHE`** en `sw.js`; `app.js` recarga sola al activarse la versión nueva y Ajustes → 🔄 Buscar actualización sirve de respaldo manual.
 
 ## Preguntas abiertas (para la v0.2)
 
