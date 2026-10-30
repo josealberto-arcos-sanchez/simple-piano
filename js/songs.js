@@ -111,4 +111,55 @@ const UN_PEQUENO_SUENO = {
   ],
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO];
+// ── El primer rayo de sol (Gemini) · Do mayor · 4/4 · 8 compases ──
+// Posición fija de Do mayor: ninguna mano se mueve de sitio.
+// Mano derecha: melodía con las 5 notas centrales. Mano izquierda: una nota larga por compás.
+const PRIMER_RAYO_DE_SOL = {
+  id: 'primer-rayo-sol',
+  title: 'El primer rayo de sol',
+  composer: 'Gemini',
+  subtitle: 'Nivel ⭐ · Do mayor',
+  emoji: '☀️',
+  bpm: 72,                // tempo tranquilo y fluido
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,          // DO grave
+  whiteTo: 72,            // DO agudo → 15 teclas blancas
+  notes: [
+    // ── Mano derecha (melodía) ──
+    // compás 1
+    { m: 60, b: 0,  d: 1, h: R, f: 1 }, { m: 62, b: 1,  d: 1, h: R, f: 2 },
+    { m: 64, b: 2,  d: 1, h: R, f: 3 }, { m: 67, b: 3,  d: 1, h: R, f: 5 },
+    // compás 2 (silencio en el 4º tiempo)
+    { m: 64, b: 4,  d: 1, h: R, f: 3 }, { m: 62, b: 5,  d: 1, h: R, f: 2 },
+    { m: 60, b: 6,  d: 1, h: R, f: 1 },
+    // compás 3
+    { m: 64, b: 8,  d: 1, h: R, f: 3 }, { m: 65, b: 9,  d: 1, h: R, f: 4 },
+    { m: 67, b: 10, d: 1, h: R, f: 5 }, { m: 64, b: 11, d: 1, h: R, f: 3 },
+    // compás 4
+    { m: 62, b: 12, d: 4, h: R, f: 2 },
+    // compás 5
+    { m: 67, b: 16, d: 1, h: R, f: 5 }, { m: 65, b: 17, d: 1, h: R, f: 4 },
+    { m: 64, b: 18, d: 1, h: R, f: 3 }, { m: 62, b: 19, d: 1, h: R, f: 2 },
+    // compás 6
+    { m: 60, b: 20, d: 1, h: R, f: 1 }, { m: 64, b: 21, d: 1, h: R, f: 3 },
+    { m: 67, b: 22, d: 1, h: R, f: 5 }, { m: 64, b: 23, d: 1, h: R, f: 3 },
+    // compás 7 (4º tiempo: Do para mantener la posición fija)
+    { m: 62, b: 24, d: 1, h: R, f: 2 }, { m: 64, b: 25, d: 1, h: R, f: 3 },
+    { m: 62, b: 26, d: 1, h: R, f: 2 }, { m: 60, b: 27, d: 1, h: R, f: 1 },
+    // compás 8 (final dulce: Do sostenido)
+    { m: 60, b: 28, d: 4, h: R, f: 1 },
+
+    // ── Mano izquierda (una nota larga por compás) ──
+    { m: 48, b: 0,  d: 4, h: L, f: 5 },
+    { m: 55, b: 4,  d: 3, h: L, f: 1 },
+    { m: 48, b: 8,  d: 4, h: L, f: 5 },
+    { m: 55, b: 12, d: 4, h: L, f: 1 },
+    { m: 52, b: 16, d: 4, h: L, f: 3 },
+    { m: 48, b: 20, d: 4, h: L, f: 5 },
+    { m: 55, b: 24, d: 4, h: L, f: 1 },
+    { m: 48, b: 28, d: 4, h: L, f: 5 },
+  ],
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL];
