@@ -1,6 +1,6 @@
 // App principal: pantallas, progreso, conexión del teclado y celebración.
 
-import { SONGS, LEVELS } from './songs.js';
+import { SONGS, LEVELS, validateSongs } from './songs.js';
 import { Progression } from './progression.js';
 import { AudioEngine } from './audio.js';
 import { MIDI } from './midi.js';
@@ -14,6 +14,11 @@ import { DevKeys } from './keyboard-dev.js';
 const App = (() => {
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
+
+  // Modo desarrollo: valida el catálogo de canciones al arrancar
+  // (en localhost o con ?dev=1). En producción no se ejecuta.
+  const DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    || location.search.includes('dev=1');
 
   const MODES = {
     listen: { title: '🔊 Escuchar', hint: 'Escucha y mira las teclas que se iluminan. Toca la pantalla para pausar.', practice: false },
@@ -133,6 +138,10 @@ const App = (() => {
 
   // ── ciclo de vida ──
   function init() {
+    if (DEV) {
+      const problems = validateSongs();
+      if (problems.length) console.warn('[songs] Problemas de validación:\n' + problems.join('\n'));
+    }
     applyEcho();
     AudioEngine.unlockOnGesture();
 
@@ -480,4 +489,4 @@ export { App };
 
 // Gancho de depuración/pruebas: un único espacio con nombre (intencional) para que
 // la consola y los tests automáticos puedan inspeccionar los módulos.
-window.__debug__ = { App, Game, SONGS, LEVELS, Users, MIDI, Progression, AudioEngine, HomeUI, UsersUI, ConnectUI, DevKeys };
+window.__debug__ = { App, Game, SONGS, LEVELS, Users, MIDI, Progression, AudioEngine, HomeUI, UsersUI, ConnectUI, DevKeys, validateSongs };

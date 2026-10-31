@@ -39,7 +39,13 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
 * **Impacto:** Hace muy difícil rastrear dónde y cuándo cambia el estado del usuario, y expone la app a corrupciones de estado en `localStorage` difíciles de depurar en un tablet.
 * **Mejora:** Encapsular todas las escrituras dentro de métodos de `Users` (p. ej. `Users.setPrefs(patch)`, `Users.recordProgress(songId, mode, stars)`) que validen y persistan automáticamente. Añadir validación estricta de esquema al importar JSON/código.
 
-#### 4. Escalabilidad del catálogo de canciones en un único fichero (`js/songs.js`) y formato manual propenso a errores
+#### 4. ✅ Realizado — Escalabilidad del catálogo de canciones en un único fichero (`js/songs.js`) y formato manual propenso a errores
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * **Notación compacta** para definir canciones: `notes` pasa a ser un objeto de pistas por mano (`{ R: [...], L: [...] }`) con tokens tipo `'E4:1/3'` (nota MI4, negra, dedo 3); el compilador (`compileNotes` / `compileTrack` en `js/songs.js`) calcula el pulso `b` automáticamente. Soporta acordes (`['C4:4/1', 'E4:4/3']`), silencios (`'&:1'`) y saltos absolutos (`'@12'`). El formato clásico (array de objetos `{ m, b, d, h, f }`) sigue siendo válido.
+  * Las 7 canciones existentes se convirtieron a la notación compacta y **se verificó en navegador** que sus notas compiladas coinciden exactamente (`m`, `b`, `d`, `h`, `f`) con las anteriores. `js/songs.js` pasó de ~340 a ~240 líneas.
+  * **Validación en arranque (modo dev)**: `validateSongs()` comprueba las reglas del catálogo (ids únicos, nivel existente, `b + d <= totalBeats`, dedos 1–5, notas dentro de `whiteFrom..whiteTo`, coherencia de manos con el nivel y que la última nota acabe en `totalBeats`). Se ejecuta desde `js/app.js` cuando corre en localhost o con `?dev=1`, y expone los problemas en la consola (sin romper la app en producción).
+  * **Se eliminó la mutación de `SONGS`**: `Game.compile()` (en `js/game.js`) ya no añade `n.id = i` a las notas originales; ahora clona las notas (`song.notes.filter(...).map((n, i) => ({ ...n, id: i }))`).
 * **Problema:** Todas las canciones están definidas como arrays de objetos `{ m: 64, b: 0, d: 1, h: R, f: 3 }` dentro de un mismo archivo `js/songs.js` (ya va por 340 líneas con solo 7 canciones cortas). Además, el motor (`Game.compile()` en `js/game.js:65`) **muta los objetos originales de `SONGS`** añadiéndoles `n.id = i` en cada partida.
 * **Impacto:**
   * Cuando haya 30 o 50 canciones, `js/songs.js` tendrá miles de líneas inmanejables.

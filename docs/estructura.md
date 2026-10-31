@@ -3,7 +3,7 @@
 ```
 index.html          Pantallas (inicio, juego, overlays)
 css/style.css       Estilos
-js/songs.js         Datos de las canciones (añadir una canción = añadir un objeto a SONGS)
+js/songs.js         Datos de las canciones (notación compacta por pistas R/L + compilador y validación validateSongs)
 js/audio.js         Sonido (síntesis Web Audio: modo Escuchar + eco del teclado)
 js/midi.js          Lectura del teclado real (Web MIDI)
 js/keyboard-dev.js  Modo prueba con las teclas del ordenador

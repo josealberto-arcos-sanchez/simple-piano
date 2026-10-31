@@ -65,8 +65,10 @@ const Game = (() => {
   // Agrupa las notas (filtradas por mano según el modo) en eventos por pulso
   function compile() {
     const hand = { rh: 'R', lh: 'L' }[mode];
-    notesVis = song.notes.filter((n) => !hand || n.h === hand);
-    notesVis.forEach((n, i) => { n.id = i; });   // id por ocurrencia (lo usa el modo libre)
+    // Se clonan las notas (no se mutan las de SONGS): el id por ocurrencia
+    // es local a esta partida y lo usa el modo libre.
+    notesVis = song.notes.filter((n) => !hand || n.h === hand)
+      .map((n, i) => ({ ...n, id: i }));
     const map = new Map();
     for (const n of notesVis) {
       if (!map.has(n.b)) map.set(n.b, []);
