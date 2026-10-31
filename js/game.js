@@ -96,7 +96,18 @@ const Game = (() => {
     rafId = requestAnimationFrame(loop);
   }
 
-  function stop() { running = false; cancelAnimationFrame(rafId); }
+  // Olvida las teclas mantenidas (si el teclado pierde un noteoff o se desconecta).
+  function resetInput() {
+    pressed.clear();
+    lastHitAt.clear();
+  }
+
+  function stop() {
+    resetInput();
+    AudioEngine.stopAll();   // corta notas colgadas (eco del teclado) al salir de la partida
+    running = false;
+    cancelAnimationFrame(rafId);
+  }
 
   // Velocidad de la canción: tempo × multiplicador (ajustable en vivo)
   function effBpm() { return song.bpm * speed; }
@@ -531,11 +542,12 @@ const Game = (() => {
       mode, running, speed, songBeat: +songBeat.toFixed(2), eventIdx, errors,
       free: mode === 'free' ? { ...freeStats, total: notesVis.length } : null,
       pending: pending ? { beat: pending.ev.beat, need: [...pending.need], got: [...pending.got] } : null,
+      pressed: [...pressed],
       W: W.toFixed(0), H: H.toFixed(0),
     };
   }
 
-  return { start, stop, noteon, noteoff, tap, resize, setSpeed, _dbg, _step: step };
+  return { start, stop, noteon, noteoff, tap, resize, setSpeed, resetInput, _dbg, _step: step };
 })();
 
 export { Game };

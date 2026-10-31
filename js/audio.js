@@ -2,10 +2,15 @@
 //  1. Modo "Escuchar": la app toca la canción.
 //  2. Eco del teclado: si el teclado de casa no tiene altavoces, la app suena
 //     al tocar (se activa desde la pantalla de conexión / ajustes).
+// Las voces activas se registran internamente para poder cortarlas con
+// stopAll()/stopNote() si se pierde un noteoff, se sale de la partida o se
+// desconecta el teclado (evita notas "colgadas" y solapamiento de audio).
 
 const AudioEngine = (() => {
   let ctx = null, master = null;
   let echoOn = false;
+  const live = new Set();         // todas las voces activas (mantenidas + notas programadas)
+  const heldByMidi = new Map();   // nota mantenida (eco) → voz, para cortarla por tecla
 
   function ensure() {
     if (!ctx) {
@@ -60,12 +65,32 @@ const AudioEngine = (() => {
       const d = Math.max(0.12, opts.dur);
       out.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
       endAt(t0 + d + 0.2);
+      // Se registra para poder cortarla con stopAll() si se sale de la partida.
+      const voice = {
+        stop() {
+          const t = ctx.currentTime;
+          try {
+            out.gain.cancelScheduledValues(t);
+            out.gain.setValueAtTime(Math.max(0.0001, out.gain.value), t);
+            out.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+          } catch (e) { /* ignore */ }
+          endAt(t + 0.08);
+          live.delete(voice);
+        },
+      };
+      live.add(voice);
+      // Al terminar sola (o poco después) deja de estar activa.
+      setTimeout(() => live.delete(voice), Math.round((d + 0.25) * 1000));
       return null;
     }
-    // nota mantenida (eco del teclado): decae y se corta al soltar
+    // nota mantenida (eco del teclado): decae y se corta al soltar.
+    // Se registra para que stopAll()/stopNote() la corten si el teclado
+    // pierde un noteoff o el jugador sale de la pantalla.
+    const prev = heldByMidi.get(midi);
+    if (prev) prev.stop();
     out.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
     endAt(t0 + 2.65);
-    return {
+    const voice = {
       stop() {
         const t = ctx.currentTime;
         try {
@@ -74,8 +99,13 @@ const AudioEngine = (() => {
           out.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
         } catch (e) { /* ignore */ }
         endAt(t + 0.1);
+        live.delete(voice);
+        if (heldByMidi.get(midi) === voice) heldByMidi.delete(midi);
       },
     };
+    live.add(voice);
+    heldByMidi.set(midi, voice);
+    return voice;
   }
 
   function blip(freq, when, dur, gain, type = 'triangle') {
@@ -116,8 +146,24 @@ const AudioEngine = (() => {
     }
   }
 
+  // Corta una nota mantenida concreta (p. ej. al soltar su tecla). No hace nada si no suena.
+  function stopNote(midi) {
+    const v = heldByMidi.get(midi);
+    if (v) v.stop();
+  }
+
+  // Corta todas las voces activas (notas mantenidas y notas del modo Escuchar).
+  // Se usa al salir de la partida o al desconectarse el teclado MIDI.
+  function stopAll() {
+    for (const v of [...live]) {
+      try { v.stop(); } catch (e) { /* ignore */ }
+    }
+    live.clear();
+    heldByMidi.clear();
+  }
+
   return {
-    unlock, unlockOnGesture, playNote, sfx,
+    unlock, unlockOnGesture, playNote, sfx, stopNote, stopAll,
     setEcho(v) { echoOn = v; },
     get echo() { return echoOn; },
   };

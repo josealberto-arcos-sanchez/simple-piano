@@ -69,8 +69,14 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
 * **Impacto:** Es el fallo clásico en PWAs sin build: se añade un módulo JS o un icono nuevo, se olvida incluirlo en `CORE` o subir `CACHE`, y la tablet de la niña sigue sirviendo código viejo o falla cuando no hay internet.
 * **Mejora:** Centralizar la constante `APP_VERSION` (o leerla para pintarla en la UI de Ajustes) y añadir en un pequeño script de PowerShell (o test automático) una comprobación que verifique que todos los ficheros referenciados en `index.html` están en `sw.js`.
 
-#### 6. Fugas de recursos y solapamiento de audio entre pantallas (`js/app.js` / `js/audio.js`)
-* **Problema:**
+#### 6. ✅ Realizado — Fugas de recursos y solapamiento de audio entre pantallas (`js/app.js` / `js/audio.js`)
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * **`js/audio.js`**: `AudioEngine` registra internamente todas las voces activas (notas mantenidas del eco, por tecla, y notas del modo Escuchar). Nuevos métodos `AudioEngine.stopAll()` (corta todas las voces activas) y `AudioEngine.stopNote(midi)` (corta la nota mantenida de una tecla concreta, p. ej. al soltar).
+  * **`js/game.js`**: nuevo `Game.resetInput()` que limpia las teclas mantenidas (`pressed`) y el anti-rebote (`lastHitAt`); `Game.stop()` ahora llama a `resetInput()` + `AudioEngine.stopAll()`, de modo que cualquier salida de la partida (terminar la canción o `#btn-back`) silencia notas colgadas y limpia las teclas visuales.
+  * **`js/app.js`**: se eliminó el mapa manual `echoVoices` (lo gestiona `AudioEngine`); `route()` usa `AudioEngine.playNote` / `AudioEngine.stopNote`. Al recibir un evento `status` de MIDI con `device: false` (teclado desconectado), `onMidiEvent` llama a `AudioEngine.stopAll()` + `Game.resetInput()` para limpiar las teclas/notas colgadas.
+  * `Game._dbg()` expone ahora `pressed` para depuración y tests.
+* **Problema original:**
   * En `js/app.js`, cuando el jugador sale de la pantalla de juego (`#btn-back`), se llama a `Game.stop()`, pero si había notas sonando en el modo `listen` o voces activas en `echoVoices`, no se silencian.
   * Si un teclado MIDI o `DevKeys` pierde un evento `noteoff` (o se desconecta el cable USB en mitad de una nota mantenida), la entrada en `echoVoices` y en `pressed` (dentro de `Game`) se queda atascada.
 * **Impacto:** Notas "colgadas" visualmente en el teclado guía o sonando al salir al menú.

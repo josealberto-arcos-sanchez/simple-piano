@@ -41,7 +41,6 @@ const App = (() => {
   let song = SONGS[0];
   let currentMode = null;
   let wakeLock = null;
-  let echoVoices = new Map();
 
   // ── navegación por niveles ──
   let view = 'levels';      // 'levels' (menú) | 'level' (canciones de un nivel) | 'song' (detalle de canción)
@@ -166,7 +165,16 @@ const App = (() => {
   }
 
   function onMidiEvent(type, note, vel) {
-    if (type === 'status') { HomeUI.updateChip(); ConnectUI.updateLive(); return; }
+    if (type === 'status') {
+      HomeUI.updateChip(); ConnectUI.updateLive();
+      // El teclado se desconectó (o nunca hubo): corta notas colgadas
+      // (eco del teclado y teclas mantenidas visualmente).
+      if (!MIDI.state.device) {
+        AudioEngine.stopAll();
+        Game.resetInput();
+      }
+      return;
+    }
     route(type, note, vel);
   }
 
@@ -174,16 +182,12 @@ const App = (() => {
   function route(type, note, vel) {
     if (type === 'noteon') {
       if (AudioEngine.echo) {
-        const old = echoVoices.get(note);
-        if (old) old.stop();
-        echoVoices.set(note, AudioEngine.playNote(note, { vel: vel || 100 }));
+        AudioEngine.playNote(note, { vel: vel || 100 });
       }
       Game.noteon(note, vel);
       ConnectUI.testNote(note);
     } else {
-      const v = echoVoices.get(note);
-      if (v) v.stop();
-      echoVoices.delete(note);
+      AudioEngine.stopNote(note);
       Game.noteoff(note);
     }
   }
