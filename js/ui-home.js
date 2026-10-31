@@ -6,6 +6,7 @@ import { Progression } from './progression.js';
 import { AudioEngine } from './audio.js';
 import { Users } from './users.js';
 import { MIDI } from './midi.js';
+import { el } from './dom.js';
 
 const HomeUI = (() => {
   const $ = (s) => document.querySelector(s);
@@ -35,43 +36,22 @@ const HomeUI = (() => {
       const got = u ? Progression.userStarsOfLevel(u, lvl.id) : 0;
       const done = maxS > 0 && got === maxS;
 
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'level-card' + (done ? ' done' : '') + (maxS === 0 ? ' empty' : '');
-
-      const emoji = document.createElement('span');
-      emoji.className = 'level-emoji';
-      emoji.textContent = lvl.emoji;
-      const title = document.createElement('h3');
-      title.textContent = lvl.title;
-      const desc = document.createElement('p');
-      desc.className = 'level-desc';
-      desc.textContent = lvl.description;
-      card.appendChild(emoji); card.appendChild(title); card.appendChild(desc);
-
-      if (maxS === 0) {
-        const note = document.createElement('p');
-        note.className = 'level-empty-note';
-        note.textContent = 'Próximamente';
-        card.appendChild(note);
-      } else {
-        const score = document.createElement('span');
-        score.className = 'level-score';
-        score.textContent = `⭐ ${got} / ${maxS}` + (done ? ' 🏆' : '');
-        card.appendChild(score);
-        const bar = document.createElement('div');
-        bar.className = 'level-bar';
-        const fill = document.createElement('div');
-        fill.className = 'level-bar-fill';
-        fill.style.width = `${Math.round((got / maxS) * 100)}%`;
-        bar.appendChild(fill);
-        card.appendChild(bar);
-      }
-
-      card.addEventListener('click', () => {
-        AudioEngine.sfx('tap');
-        ctx.selectLevel(lvl.id);
-      });
+      const card = el('button', {
+        type: 'button',
+        className: 'level-card' + (done ? ' done' : '') + (maxS === 0 ? ' empty' : ''),
+        on: { click: () => { AudioEngine.sfx('tap'); ctx.selectLevel(lvl.id); } },
+      }, [
+        el('span', { className: 'level-emoji', text: lvl.emoji }),
+        el('h3', { text: lvl.title }),
+        el('p', { className: 'level-desc', text: lvl.description }),
+        maxS === 0
+          ? el('p', { className: 'level-empty-note', text: 'Próximamente' })
+          : [
+              el('span', { className: 'level-score', text: `⭐ ${got} / ${maxS}` + (done ? ' 🏆' : '') }),
+              el('div', { className: 'level-bar' },
+                el('div', { className: 'level-bar-fill', style: { width: `${Math.round((got / maxS) * 100)}%` } })),
+            ],
+      ]);
       list.appendChild(card);
     });
   }
@@ -97,37 +77,18 @@ const HomeUI = (() => {
       const sGot = u ? Progression.userStarsOfSong(u, s) : 0;
       const done = sMax > 0 && sGot === sMax;
 
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'level-card song-list-card' + (done ? ' done' : '') + (s.id === ctx.song.id ? ' on' : '');
-
-      const emoji = document.createElement('span');
-      emoji.className = 'level-emoji';
-      emoji.textContent = s.emoji;
-      const title = document.createElement('h3');
-      title.textContent = s.title;
-      const desc = document.createElement('p');
-      desc.className = 'level-desc';
-      desc.textContent = [s.composer, s.subtitle].filter(Boolean).join(' · ');
-      card.appendChild(emoji); card.appendChild(title); card.appendChild(desc);
-
-      const score = document.createElement('span');
-      score.className = 'level-score';
-      score.textContent = `⭐ ${sGot} / ${sMax}` + (done ? ' 🏆' : '');
-      card.appendChild(score);
-
-      const bar = document.createElement('div');
-      bar.className = 'level-bar';
-      const fill = document.createElement('div');
-      fill.className = 'level-bar-fill';
-      fill.style.width = `${Math.round((sGot / sMax) * 100)}%`;
-      bar.appendChild(fill);
-      card.appendChild(bar);
-
-      card.addEventListener('click', () => {
-        AudioEngine.sfx('tap');
-        ctx.selectSong(s.id);
-      });
+      const card = el('button', {
+        type: 'button',
+        className: 'level-card song-list-card' + (done ? ' done' : '') + (s.id === ctx.song.id ? ' on' : ''),
+        on: { click: () => { AudioEngine.sfx('tap'); ctx.selectSong(s.id); } },
+      }, [
+        el('span', { className: 'level-emoji', text: s.emoji }),
+        el('h3', { text: s.title }),
+        el('p', { className: 'level-desc', text: [s.composer, s.subtitle].filter(Boolean).join(' · ') }),
+        el('span', { className: 'level-score', text: `⭐ ${sGot} / ${sMax}` + (done ? ' 🏆' : '') }),
+        el('div', { className: 'level-bar' },
+          el('div', { className: 'level-bar-fill', style: { width: `${Math.round((sGot / sMax) * 100)}%` } })),
+      ]);
       list.appendChild(card);
     });
   }

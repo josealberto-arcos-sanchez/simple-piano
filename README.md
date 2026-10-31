@@ -27,7 +27,6 @@ Prototipo v0.10.0 · cuatro niveles (mano derecha, mano izquierda, las dos manos
 - [Cómo añadir una canción](docs/anadir-cancion.md): formato de `js/songs.js`, notas MIDI y digitación.
 - [Crear una Pull Request](docs/crear-pull-request.md): crear la PR con la API de GitHub sin `gh`.
 - [Documento de diseño](docs/diseno.md): decisiones pedagógicas, arquitectura y preguntas abiertas.
-- [Refactor](docs/refactor.md): instrucciones para el refactor en el que estamos trabajando.
 
 ### Publicación
 
