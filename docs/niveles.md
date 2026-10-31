@@ -101,9 +101,10 @@ canción no las cumple.
   mover las manos por el teclado.
 - **Modos que ofrece la app:** los cinco (igual que el nivel 3): Escuchar ·
   Mano derecha · Mano izquierda · ¡Las dos manos! · ¡Toca libre!
-- **Ejemplos de canciones:** *Preguntas y respuestas* (diálogo), *Vals de las
-  nubes* (3/4 con acordes en la izquierda), *Cuando los santos marchan* (eco
-  entre manos y acordes de banda).
+- **Ejemplos de canciones:** *Preguntas y respuestas* (diálogo), *El puente de
+  amigos* (pregunta-respuesta con acordes en la izquierda), *Vals de las nubes*
+  (3/4 con acordes en la izquierda), *Cuando los santos marchan* (eco entre manos
+  y acordes de banda).
 
 ---
 
