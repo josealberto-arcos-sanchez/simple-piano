@@ -27,7 +27,12 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
   * Hay referencias circulares implícitas (`App` llama a `DevKeys.enable`, y `DevKeys` llama a `App.route`).
 * **Mejora:** Usar **ES Modules nativos** (`<script type="module" src="js/app.js"></script>`). No requiere ningún *bundler* ni Node.js, funciona directamente en cualquier navegador moderno y en `scripts/serve.ps1`, y obliga a declarar explícitamente qué exporta e importa cada archivo.
 
-#### 3. Mutación directa del estado de `Users` desde fuera del módulo y falta de validación al importar
+#### 3. ✅ Realizado — Mutación directa del estado de `Users` desde fuera del módulo y falta de validación al importar
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * Todas las escrituras del estado del usuario quedaron encapsuladas en métodos de `Users` que validan y persisten automáticamente: `Users.setPrefs(id, patch)` (velocidad, vista, nivel y canción), `Users.recordProgress(id, songId, mode, stars)` (estrellas o escucha, conservando el mejor resultado), `Users.markListened(id, songId)` y `Users.resetProgress(id)`.
+  * `js/app.js` ya no muta `activeUser.prefs.*` ni `u.progress[...]` directamente ni llama a `Users.persist()`: todas las escrituras pasan por esos métodos.
+  * Validación estricta de esquema al importar (JSON, código `SP1:` y `localStorage`): `sanitizeUser` / `sanitizeProgress` normalizan nombres, colores, preferencias y progreso (sólo modos conocidos, estrellas enteras entre 1 y 3, fechas como texto y usuarios sin nombre válido descartados). Se aplican también en `load()` y en la migración desde v0.2 (`migrateLegacy`).
 * **Problema:**
   * `Users.active()` devuelve la referencia directa al objeto interno del usuario. En `js/app.js` se muta directamente desde fuera (`activeUser.prefs.speed = v`, `u.progress[song.id] = ...`) y luego se llama manualmente a `Users.persist()`.
   * En `Users.importData(obj)`, el objeto `progress` importado desde un JSON o código externo se asigna o fusiona sin sanitizar tipos ni rangos (p. ej., alguien o un error de versión podría inyectar `stars: 999`, `stars: "3"` o estructuras corruptas que rompan la suma en `starTotal`).

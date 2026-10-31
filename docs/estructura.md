@@ -7,7 +7,7 @@ js/songs.js         Datos de las canciones (añadir una canción = añadir un ob
 js/audio.js         Sonido (síntesis Web Audio: modo Escuchar + eco del teclado)
 js/midi.js          Lectura del teclado real (Web MIDI)
 js/keyboard-dev.js  Modo prueba con las teclas del ordenador
-js/users.js         Perfiles de usuario (localStorage, color, exportar/importar)
+js/users.js         Perfiles de usuario (localStorage, color, exportar/importar, escrituras encapsuladas con validación)
 js/game.js          Motor: notas que caen, modo espera, fase libre, velocidad, feedback
 js/progression.js   Reglas de dominio: modos disponibles, estrellas y puntuación
 js/ui-home.js       Vistas de inicio: niveles, canciones, detalle y chips

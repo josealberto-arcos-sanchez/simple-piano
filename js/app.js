@@ -71,7 +71,7 @@ const App = (() => {
     HomeUI.updateUserChip();
     updateGameUser();
     if (typeof activeUser.prefs.speed !== 'number' || !SPEEDS.some((s) => s.v === activeUser.prefs.speed)) {
-      activeUser.prefs.speed = 1;
+      Users.setPrefs(activeUser.id, { speed: 1 });
     }
     // ▸ nivel recordado (o el primero jugable si no existe / no tiene canciones aún)
     const storedLevel = activeUser.prefs.levelId;
@@ -81,13 +81,11 @@ const App = (() => {
     let s = SONGS.find((x) => x.id === activeUser.prefs.songId && x.level === currentLevelId);
     if (!s) s = Progression.songsOfLevel(currentLevelId)[0] || SONGS[0];
     song = s;
-    activeUser.prefs.songId = song.id;
-    activeUser.prefs.levelId = currentLevelId;
+    Users.setPrefs(activeUser.id, { songId: song.id, levelId: currentLevelId });
     // ▸ vista recordada (menú de niveles, listado de canciones o detalle de canción)
     view = activeUser.prefs.view === 'level' ? 'level'
       : activeUser.prefs.view === 'song' ? 'song'
       : 'levels';
-    Users.persist();
     updateSpeedUI();
   }
 
@@ -96,12 +94,7 @@ const App = (() => {
   function setStars(mode, stars) {
     const u = currentUser();
     if (!u) return;
-    if (!u.progress[song.id]) u.progress[song.id] = {};
-    const prev = u.progress[song.id][mode];
-    if (!prev || stars > prev.stars) {
-      u.progress[song.id][mode] = { stars, date: new Date().toISOString() };
-      Users.persist();
-    }
+    Users.recordProgress(u.id, song.id, mode, stars);
   }
 
   // ── eco del teclado (si el teclado no suena por sí solo) ──
@@ -129,7 +122,7 @@ const App = (() => {
 
   function applySpeed(v) {
     const u = currentUser();
-    if (u) { u.prefs.speed = v; Users.persist(); }
+    if (u) Users.setPrefs(u.id, { speed: v });
     Game.setSpeed(v);
     updateSpeedUI();
     if (!$('#screen-game').classList.contains('hidden')) {
@@ -195,7 +188,7 @@ const App = (() => {
     if (!found) return;
     song = found;
     const u = currentUser();
-    if (u) { u.prefs.songId = song.id; Users.persist(); }
+    if (u) Users.setPrefs(u.id, { songId: song.id });
     setView('song');
   }
 
@@ -208,10 +201,10 @@ const App = (() => {
     }
     currentLevelId = id;
     const u = currentUser();
-    if (u) { u.prefs.levelId = id; Users.persist(); }
+    if (u) Users.setPrefs(u.id, { levelId: id });
     if (!Progression.songsOfLevel(id).some((s) => s.id === song.id)) {
       song = Progression.songsOfLevel(id)[0];
-      if (u) { u.prefs.songId = song.id; Users.persist(); }
+      if (u) Users.setPrefs(u.id, { songId: song.id });
     }
     setView('level');
   }
@@ -229,7 +222,7 @@ const App = (() => {
   function setView(v) {
     view = v;
     const u = currentUser();
-    if (u) { u.prefs.view = v; Users.persist(); }
+    if (u) Users.setPrefs(u.id, { view: v });
     HomeUI.show(v);
   }
 
@@ -298,11 +291,7 @@ const App = (() => {
     releaseWakeLock();
     if (res.listen) {
       const u = currentUser();
-      if (u) {
-        u.progress[song.id] = u.progress[song.id] || {};
-        u.progress[song.id].listen = true;
-        Users.persist();
-      }
+      if (u) Users.markListened(u.id, song.id);
       showScreen('home'); renderHome();
       AudioEngine.sfx('win');
       return;
@@ -473,7 +462,7 @@ const App = (() => {
       const u = currentUser();
       const who = u ? ` de ${u.name}` : '';
       if (confirm(`¿Borrar el progreso${who}?`)) {
-        if (u) { u.progress = {}; Users.persist(); }
+        if (u) Users.resetProgress(u.id);
         renderHome();
         hideOverlay('#settings-overlay');
       }

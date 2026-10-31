@@ -30,7 +30,7 @@ const Users = (() => {
       if (raw && Array.isArray(raw.users)) {
         state.version = raw.version || 1;
         state.activeUserId = typeof raw.activeUserId === 'string' ? raw.activeUserId : null;
-        state.users = raw.users.filter((u) => u && typeof u.name === 'string');
+        state.users = raw.users.map(sanitizeUser).filter(Boolean);
       }
     } catch (e) { /* ignorar */ }
     // Saneamiento: el usuario activo siempre debe existir.
@@ -59,10 +59,10 @@ const Users = (() => {
       prefs: {
         view: 'levels',
         levelId: null,
-        songId: legacySettings && legacySettings.songId ? legacySettings.songId : undefined,
-        speed: legacySettings && typeof legacySettings.speed === 'number' ? legacySettings.speed : undefined,
+        songId: legacySettings && typeof legacySettings.songId === 'string' ? legacySettings.songId.slice(0, 80) : undefined,
+        speed: legacySettings && typeof legacySettings.speed === 'number' && legacySettings.speed > 0 ? legacySettings.speed : undefined,
       },
-      progress: legacyProgress || {},
+      progress: sanitizeProgress(legacyProgress),
     };
     state.users.push(user);
     state.activeUserId = user.id;
@@ -76,6 +76,67 @@ const Users = (() => {
   }
 
   function colorOf(id) { return COLORS.find((c) => c.id === id) || COLORS[0]; }
+
+  // ── saneamiento de esquema (importación / carga / migración) ──
+  // Cualquier dato que entra de fuera (JSON, código SP1:, localStorage) se
+  // normaliza aquí para no romper las cuentas de estrellas ni la UI.
+
+  const VIEWS = ['levels', 'level', 'song'];
+  const MODES = ['listen', 'rh', 'lh', 'both', 'free'];
+
+  // Estrellas como entero entre 1 y 3 (siempre hay victoria, mínimo 1).
+  function clampStars(v) {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(3, Math.max(1, n)) : 1;
+  }
+
+  // Normaliza el progreso de un usuario: sólo modos conocidos, estrellas
+  // enteras 1..3 y fechas como texto.
+  function sanitizeProgress(prog) {
+    const out = {};
+    if (!prog || typeof prog !== 'object') return out;
+    for (const songId of Object.keys(prog)) {
+      if (typeof songId !== 'string' || !songId) continue;
+      const entry = prog[songId];
+      if (!entry || typeof entry !== 'object') continue;
+      const clean = {};
+      for (const mode of MODES) {
+        const v = entry[mode];
+        if (mode === 'listen') {
+          if (v === true || v === 1 || (typeof v === 'object' && v && v.listen)) clean.listen = true;
+        } else if (v && typeof v === 'object') {
+          const date = typeof v.date === 'string' && v.date ? v.date : new Date().toISOString();
+          clean[mode] = { stars: clampStars(v.stars), date };
+        }
+      }
+      if (Object.keys(clean).length > 0) out[songId] = clean;
+    }
+    return out;
+  }
+
+  // Construye un usuario válido a partir de datos arbitrarios. Devuelve null
+  // si no es recuperable (sin nombre válido).
+  function sanitizeUser(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const name = typeof raw.name === 'string' ? raw.name.trim().slice(0, 20) : '';
+    if (!name) return null;
+    const p = raw.prefs && typeof raw.prefs === 'object' ? raw.prefs : {};
+    const user = {
+      id: typeof raw.id === 'string' && raw.id ? raw.id.slice(0, 40) : makeId(),
+      name,
+      color: colorOf(raw.color).id,
+      createdAt: typeof raw.createdAt === 'string' && raw.createdAt ? raw.createdAt : new Date().toISOString(),
+      prefs: {},
+      progress: sanitizeProgress(raw.progress),
+    };
+    if (VIEWS.includes(p.view)) user.prefs.view = p.view;
+    const levelId = Number(p.levelId);
+    if (Number.isInteger(levelId)) user.prefs.levelId = levelId;
+    if (typeof p.songId === 'string' && p.songId) user.prefs.songId = p.songId.slice(0, 80);
+    const speed = Number(p.speed);
+    if (Number.isFinite(speed) && speed > 0) user.prefs.speed = speed;
+    return user;
+  }
 
   // ── acceso ──
   function all() { return state.users; }
@@ -126,6 +187,67 @@ const Users = (() => {
     return true;
   }
 
+  // ── escrituras encapsuladas (validan y persisten automáticamente) ──
+  // Toda mutación del estado de un usuario debe pasar por estos métodos; nada
+  // de tocar `user.prefs` o `user.progress` desde fuera del módulo.
+
+  // Ajusta preferencias de un jugador. Ignora claves desconocidas y normaliza
+  // tipos/rangos. Devuelve el usuario actualizado o null si no existe.
+  function setPrefs(id, patch) {
+    const u = state.users.find((x) => x.id === id);
+    if (!u || !patch || typeof patch !== 'object') return u;
+    u.prefs = u.prefs || {};
+    if (patch.speed !== undefined) {
+      const v = Number(patch.speed);
+      u.prefs.speed = Number.isFinite(v) && v > 0 ? v : undefined;
+    }
+    if (VIEWS.includes(patch.view)) u.prefs.view = patch.view;
+    if (patch.levelId !== undefined) {
+      const n = Number(patch.levelId);
+      u.prefs.levelId = Number.isInteger(n) ? n : null;
+    }
+    if (patch.songId !== undefined) {
+      u.prefs.songId = typeof patch.songId === 'string' ? patch.songId.slice(0, 80) : undefined;
+    }
+    save();
+    return u;
+  }
+
+  // Registra el resultado de una partida: estrellas (1..3) o escucha completada.
+  // Conserva el mejor resultado anterior. Devuelve false si los argumentos no
+  // son válidos.
+  function recordProgress(id, songId, mode, stars) {
+    const u = state.users.find((x) => x.id === id);
+    if (!u || typeof songId !== 'string' || !songId || !MODES.includes(mode)) return false;
+    u.progress = u.progress || {};
+    if (!u.progress[songId]) u.progress[songId] = {};
+    if (mode === 'listen') {
+      u.progress[songId].listen = true;
+    } else {
+      const s = clampStars(stars);
+      const prev = u.progress[songId][mode];
+      if (!prev || typeof prev.stars !== 'number' || s > prev.stars) {
+        u.progress[songId][mode] = { stars: s, date: new Date().toISOString() };
+      }
+    }
+    save();
+    return true;
+  }
+
+  // Marca una canción como escuchada (modo Escuchar completado).
+  function markListened(id, songId) {
+    return recordProgress(id, songId, 'listen', 0);
+  }
+
+  // Borra todo el progreso de un jugador.
+  function resetProgress(id) {
+    const u = state.users.find((x) => x.id === id);
+    if (!u) return false;
+    u.progress = {};
+    save();
+    return true;
+  }
+
   // ── tema (variables CSS) ──
   function applyTheme(user) {
     const c = colorOf(user ? user.color : undefined);
@@ -169,35 +291,23 @@ const Users = (() => {
     } catch (e) { return null; }
   }
 
-  // Fusiona usuarios importados con los locales, conservando las mejores estrellas.
+  // Fusiona usuarios importados con los locales, conservando las mejores
+  // estrellas. Los datos de entrada se sanean antes de tocar el estado.
   function importData(obj) {
     if (!obj || !Array.isArray(obj.users)) return 0;
     let added = 0;
     for (const inUser of obj.users) {
-      if (!inUser || typeof inUser.name !== 'string') continue;
-      const local = state.users.find((u) => u.id === inUser.id);
+      const clean = sanitizeUser(inUser);
+      if (!clean) continue;
+      const local = state.users.find((u) => u.id === clean.id);
       if (local) {
-        mergeProgress(local.progress, inUser.progress || {});
-        if (inUser.prefs) {
-          local.prefs = local.prefs || {};
-          Object.keys(inUser.prefs).forEach((k) => {
-            if (local.prefs[k] === undefined) local.prefs[k] = inUser.prefs[k];
-          });
-        }
-      } else {
-        state.users.push({
-          id: inUser.id || makeId(),
-          name: String(inUser.name).trim().slice(0, 20),
-          color: colorOf(inUser.color).id,
-          createdAt: inUser.createdAt || new Date().toISOString(),
-          prefs: {
-            view: ['level', 'song'].includes(inUser.prefs && inUser.prefs.view) ? inUser.prefs.view : 'levels',
-            levelId: inUser.prefs && typeof inUser.prefs.levelId === 'number' ? inUser.prefs.levelId : null,
-            songId: inUser.prefs && inUser.prefs.songId,
-            speed: inUser.prefs && inUser.prefs.speed,
-          },
-          progress: inUser.progress || {},
+        mergeProgress(local.progress, clean.progress);
+        local.prefs = local.prefs || {};
+        Object.keys(clean.prefs).forEach((k) => {
+          if (local.prefs[k] === undefined) local.prefs[k] = clean.prefs[k];
         });
+      } else {
+        state.users.push(clean);
         added++;
       }
     }
@@ -214,9 +324,10 @@ const Users = (() => {
         for (const mode of Object.keys(st)) {
           if (mode === 'listen') {
             if (st.listen) tt.listen = true;
-          } else if (st[mode] && st[mode].stars) {
-            const cur = tt[mode] && tt[mode].stars ? tt[mode].stars : 0;
-            if (st[mode].stars > cur) tt[mode] = { stars: st[mode].stars, date: st[mode].date };
+          } else if (st[mode] && typeof st[mode] === 'object') {
+            const s = clampStars(st[mode].stars);
+            const cur = tt[mode] && typeof tt[mode].stars === 'number' ? tt[mode].stars : 0;
+            if (s > cur) tt[mode] = { stars: s, date: st[mode].date || new Date().toISOString() };
           }
         }
       }
@@ -228,6 +339,7 @@ const Users = (() => {
   return {
     all, active, colors, colorOf,
     createUser, updateUser, deleteUser, selectUser, applyTheme,
+    setPrefs, recordProgress, markListened, resetProgress,
     exportAll, exportActive, encodeObj, decodeStr, importData,
     persist: save,
   };

@@ -53,3 +53,6 @@ Dentro del panel de Jugadores:
 
 Al importar, los usuarios se **fusionan**: no se pisan entre sí. Si un
 jugador ya existe, se conserva el mayor número de estrellas en cada canción.
+Los datos importados se **validan y normalizan** (p. ej. estrellas limitadas
+a 1–3, sólo modos conocidos y usuarios sin nombre válido descartados), de modo
+que un fichero o código corrupto no rompe las cuentas de estrellas.
