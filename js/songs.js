@@ -335,6 +335,132 @@ const PAN_CALIENTE = {
   },
 };
 
+// ── Claro de luna / Au clair de la lune (Tradicional) · Do mayor · 4/4 · 8 compases ──
+// Nivel 1: mano derecha SOLA, posición fija de Do central (60–67).
+// Melodía suave y cantabile; empieza con los dedos 1–3 y abre al 4 y 5 en la segunda mitad.
+const CLARO_DE_LUNA = {
+  id: 'claro-de-luna',
+  title: 'Claro de luna',
+  composer: 'Tradicional',
+  subtitle: 'Nivel 1 · Mano derecha · Do mayor',
+  emoji: '🌕',
+  bpm: 72,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 1,
+  notes: {
+    R: [
+      // compases 1–2 (8 pulsos)
+      'C4:1/1', 'C4:1/1', 'C4:1/1', 'D4:1/2',
+      'E4:2/3', 'D4:2/2',
+      // compases 3–4 (8 pulsos)
+      'C4:1/1', 'E4:1/3', 'D4:1/2', 'D4:1/2',
+      'C4:4/1',
+      // compases 5–6 (8 pulsos)
+      'D4:1/2', 'D4:1/2', 'D4:1/2', 'D4:1/2',
+      'E4:2/3', 'G4:2/5',
+      // compases 7–8 (8 pulsos) → total 32
+      'F4:1/4', 'E4:1/3', 'D4:1/2', 'D4:1/2',
+      'C4:4/1',
+    ],
+  },
+};
+
+// ── La abeja viajera / Lightly Row (Popular) · Do mayor · 4/4 · 8 compases ──
+// Nivel 1: mano derecha SOLA, posición fija de Do central (60–67).
+// Clásico infantil alegre que combina saltos de tercera (5–3 y 4–2) con la escala de 5 dedos.
+const ABEJA_VIAJERA = {
+  id: 'abeja-viajera',
+  title: 'La abeja viajera',
+  composer: 'Popular',
+  subtitle: 'Nivel 1 · Mano derecha · Do mayor',
+  emoji: '🐝',
+  bpm: 80,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 1,
+  notes: {
+    R: [
+      // compases 1–2 (8 pulsos)
+      'G4:1/5', 'E4:1/3', 'E4:2/3',
+      'F4:1/4', 'D4:1/2', 'D4:2/2',
+      // compases 3–4 (8 pulsos)
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'F4:1/4',
+      'G4:1/5', 'G4:1/5', 'G4:2/5',
+      // compases 5–6 (8 pulsos)
+      'G4:1/5', 'E4:1/3', 'E4:2/3',
+      'F4:1/4', 'D4:1/2', 'D4:2/2',
+      // compases 7–8 (8 pulsos) → total 32
+      'C4:1/1', 'E4:1/3', 'G4:1/5', 'G4:1/5',
+      'C4:4/1',
+    ],
+  },
+};
+
+// ── Gotitas de lluvia (Original) · Do mayor · 4/4 · 6 compases ──
+// Nivel 1: mano derecha SOLA, posición fija de Do central (60–67).
+// Juega con silencios de negra (&:1) y pequeños saltos para trabajar el pulso y el meñique.
+const GOTITAS_DE_LLUVIA = {
+  id: 'gotitas-de-lluvia',
+  title: 'Gotitas de lluvia',
+  composer: 'Original',
+  subtitle: 'Nivel 1 · Mano derecha · Do mayor',
+  emoji: '🌧️',
+  bpm: 78,
+  beatsPerMeasure: 4,
+  totalBeats: 24,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 1,
+  notes: {
+    R: [
+      // compases 1–2 (8 pulsos)
+      'G4:1/5', 'E4:1/3', 'G4:1/5', '&:1',
+      'F4:1/4', 'D4:1/2', 'F4:1/4', '&:1',
+      // compases 3–4 (8 pulsos)
+      'E4:1/3', 'C4:1/1', 'D4:1/2', 'E4:1/3',
+      'G4:2/5', 'E4:2/3',
+      // compases 5–6 (8 pulsos) → total 24
+      'F4:1/4', 'E4:1/3', 'D4:1/2', 'G4:1/5',
+      'C4:4/1',
+    ],
+  },
+};
+
+// ── Sube la escalera (Original) · Do mayor · 4/4 · 6 compases ──
+// Nivel 1: mano derecha SOLA, posición fija de Do central (60–67).
+// Canción-ejercicio por grados conjuntos (1–2–3–4–5 y 5–4–3–2–1) para independizar cada dedo.
+const SUBE_LA_ESCALERA = {
+  id: 'sube-la-escalera',
+  title: 'Sube la escalera',
+  composer: 'Original',
+  subtitle: 'Nivel 1 · Mano derecha · Do mayor',
+  emoji: '🪜',
+  bpm: 74,
+  beatsPerMeasure: 4,
+  totalBeats: 24,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 1,
+  notes: {
+    R: [
+      // compases 1–2: sube paso a paso (8 pulsos)
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'F4:1/4',
+      'G4:2/5', 'E4:2/3',
+      // compases 3–4: baja paso a paso (8 pulsos)
+      'G4:1/5', 'F4:1/4', 'E4:1/3', 'D4:1/2',
+      'C4:2/1', 'G4:2/5',
+      // compases 5–6: cierre en tónica (8 pulsos) → total 24
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'D4:1/2',
+      'C4:4/1',
+    ],
+  },
+};
+
 // ── El tren de madera (original) · Do mayor · 4/4 · 6 compases ──
 // Nivel 2: mano izquierda SOLA, posición fija de Do grave (48–55).
 const TREN_MADERA = {
@@ -538,7 +664,103 @@ const CUANDO_LOS_SANTOS = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS]
+// ── El puente de amigos (original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 4: diálogo pregunta-respuesta. La mano derecha lanza una frase y la
+// izquierda responde; al final se unen para cerrar en equipo. Acordes sencillos
+// (fundamental+quinta) en la mano izquierda. Ninguna mano se mueve de su sitio.
+const PUENTE_DE_AMIGOS = {
+  id: 'puente-de-amigos',
+  title: 'El puente de amigos',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Do mayor',
+  emoji: '🤝',
+  level: 4,
+  bpm: 72,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compás 1 (4 pulsos)
+      'C4:1/1', 'D4:1/2', 'E4:2/3',
+      // compás 2 (4 pulsos)
+      'G4:2/5', 'F4:1/4', 'E4:1/3',
+      // compás 3 (4 pulsos)
+      'D4:1/2', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      // compás 4 (4 pulsos)
+      'G4:1/5', 'E4:1/3', 'D4:2/2',
+      // compás 5 - pregunta R (4 pulsos)
+      'C4:1/1', 'E4:1/3', 'G4:2/5',
+      // compás 6 - respuesta L, R espera (4 pulsos)
+      '&:4',
+      // compás 7 - unión (4 pulsos)
+      'F4:1/4', 'E4:1/3', 'D4:1/2', 'C4:1/1',
+      // compás 8 - final en tónica (4 pulsos) → total 32
+      'C4:4/1',
+    ],
+    L: [
+      // compás 1 - acorde tónica (4 pulsos)
+      ['C3:4/5', 'G3:4/1'],
+      // compás 2 - acorde dominante (4 pulsos)
+      ['G3:4/1', 'D3:4/4'],
+      // compás 3 - acorde subdominante (4 pulsos)
+      ['F3:4/2', 'C3:4/5'],
+      // compás 4 - acorde tónica (4 pulsos)
+      ['C3:4/5', 'G3:4/1'],
+      // compás 5 - R pregunta sola (4 pulsos)
+      '&:4',
+      // compás 6 - respuesta L (4 pulsos)
+      'G3:1/1', 'F3:1/2', 'E3:2/3',
+      // compás 7 - dominante preparando final (4 pulsos)
+      ['G3:4/1', 'D3:4/4'],
+      // compás 8 - tónica final (4 pulsos) → total 32
+      ['C3:4/5', 'G3:4/1'],
+    ],
+  },
+};
+
+// ── Farol de la luna (original) · Do mayor · 3/4 · 8 compases ──
+// Nivel 4: vals. Mano derecha: melodía suave en 3/4 que sube, baja en espejo y cierra
+// en tónica. Mano izquierda: acordes de dos notas sostenidos un compás entero (I–V–I,
+// I–IV–V–I), alineados con la armonía de cada compás.
+const FAROL_DE_LA_LUNA = {
+  id: 'farol-de-la-luna',
+  title: 'Farol de la luna',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Vals · Do mayor',
+  emoji: '🏮',
+  level: 4,
+  bpm: 74,
+  beatsPerMeasure: 3,
+  totalBeats: 24,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      'C4:1/1', 'D4:1/2', 'E4:1/3',           // compás 1 - sube (3 pulsos)
+      'F4:1/4', 'G4:2/5',                     // compás 2 - llega arriba (3 pulsos)
+      'G4:1/5', 'F4:1/4', 'E4:1/3',           // compás 3 - baja espejo (3 pulsos)
+      'D4:2/2', 'C4:1/1',                     // compás 4 - reposo tónica (3 pulsos)
+      'E4:1/3', 'G4:1/5', 'E4:1/3',           // compás 5 - salto de 5ª, trabaja meñique (3 pulsos)
+      'D4:1/2', 'F4:1/4', 'E4:1/3',           // compás 6 - bordadura (3 pulsos)
+      'D4:1/2', 'C4:1/1', 'D4:1/2',           // compás 7 - impulso dominante (3 pulsos)
+      'C4:3/1',                               // compás 8 - blanca con puntillo final (3 pulsos) → total 24
+    ],
+    L: [
+      ['C3:3/5', 'G3:3/1'],                  // compás 1 - tónica I (3 pulsos)
+      ['G3:3/1', 'D3:3/4'],                  // compás 2 - dominante V (3 pulsos)
+      ['F3:3/2', 'C3:3/5'],                  // compás 3 - subdominante IV (3 pulsos)
+      ['C3:3/5', 'G3:3/1'],                  // compás 4 - tónica I (3 pulsos)
+      ['C3:3/5', 'G3:3/1'],                  // compás 5 - tónica I repetida (3 pulsos)
+      ['F3:3/2', 'C3:3/5'],                  // compás 6 - subdominante IV (3 pulsos)
+      ['G3:3/1', 'D3:3/4'],                  // compás 7 - dominante V tensa (3 pulsos)
+      ['C3:3/5', 'G3:3/1'],                  // compás 8 - tónica final (3 pulsos) → total 24
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──

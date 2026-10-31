@@ -11,7 +11,9 @@ alias de la Microsoft Store, que fallan con *"no se encontró Python"*). Por eso
 
 - **No** intentes `node --check`, `python -m http.server`, `npx serve`, etc.
 - **Sí** existe un servidor estático en PowerShell puro: **`scripts/serve.ps1`**
-  (sin dependencias). Es el único servidor local del proyecto.
+  (sin dependencias). Es el servidor local recomendado para este equipo.
+- En CI (GitHub Actions) se usa un servidor estático equivalente en Node:
+  **`scripts/serve.mjs`** (mismo comportamiento, multiplataforma).
 - **`scripts/check-sw.ps1`** (PowerShell puro) verifica la coherencia del Service
   Worker: que `sw.js` lista todos los ficheros referenciados en `index.html`,
   los `import` de `js/` y los iconos de `manifest.json`, que `CORE` existe en
@@ -131,3 +133,25 @@ Al tocar el código de niveles, comprueba con el navegador:
       mismo nivel y misma canción.
 - [ ] Cambiar de jugador restaura la vista de cada uno independientemente.
 - [ ] Consola sin errores.
+
+## 8. CI automatizada (GitHub Actions)
+
+El repo incluye el workflow **`.github/workflows/test.yml`** que en cada `push`
+a `main` y en cada Pull Request:
+
+- instala la app y Playwright con Chromium;
+- levanta `scripts/serve.mjs` (servidor estático en Node);
+- abre `test.html` con un navegador headless y comprueba que la suite pasa al
+  100% (ningún `li.fail`, resumen `X/X correctos`, sin errores de consola).
+
+Para ejecutarla en local (equipo con Node):
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+La lógica de verificación está en `tests/smoke.spec.js` y usa
+`@playwright/test` como única dependencia de desarrollo.
+
