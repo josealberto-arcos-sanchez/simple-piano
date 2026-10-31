@@ -4,7 +4,7 @@ App web para que una niña de 8 años aprenda a tocar el piano **con su teclado 
 estilo SimplyPiano: notas que caen en la pantalla del tablet, la app escucha el
 teclado por USB (Web MIDI) y espera a que acierte cada nota. Cero castigos.
 
-Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
+Prototipo v0.9.0 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 
 > **Este README es un índice.** Cada tema tiene su propio documento en [`docs/`](docs/).
 > Al añadir, quitar o renombrar un documento, actualiza también esta lista.

@@ -1,13 +1,41 @@
 // Canciones del método.
-// Cada nota: { m: nota MIDI, b: pulso de inicio, d: duración en pulsos, h: mano ('R'|'L'), f: dedo }
+// Formato interno de cada nota: { m: nota MIDI, b: pulso de inicio, d: duración en pulsos,
+// h: mano ('R'|'L'), f: dedo }
 // MIDI: DO central (C4) = 60 · DO grave (C3) = 48. Dedos: 1 = pulgar … 5 = meñique.
+//
 // Cada canción en SONGS tiene los campos: id, title, composer, subtitle (opcional), emoji,
 // bpm, beatsPerMeasure, totalBeats, whiteFrom, whiteTo, notes y level (id de su nivel en LEVELS).
 // LEVELS es la lista de niveles: añadir un nivel nuevo = añadir un objeto a LEVELS.
 // Todos los niveles están abiertos; la dificultad la marca el contenido de cada canción.
+//
+// NOTACIÓN COMPACTA (recomendada) para notes: en lugar de escribir `b` a mano, se definen
+// pistas por mano (R / L) con tokens y el pulsador calcula el pulso b automáticamente:
+//   notes: {
+//     R: [ 'E4:1/3', 'D4:1/2', ... ],   // mano derecha
+//     L: [ 'C3:4/5', 'G3:4/1', ... ],   // mano izquierda
+//   }
+// Token de nota:   'NOTA:duración/dedo'  (p. ej. 'E4:1/3' = MI4, negra, dedo 3)
+//                   'NOTA' → negra (duración 1) sin dedo (la validación avisará)
+// Acorde:          [ 'C4:4/1', 'E4:4/3' ]  o 'C4+E4:G4' → suenan juntas en el mismo pulso;
+//                   el cursor avanza con la duración más larga del acorde.
+// Silencio:        '&:1' → salta 1 pulso (también '&:0.5', '&:2', …)
+// Salto absoluto:  '@12' → coloca el cursor en el pulso 12 (recupera el sitio tras un
+//                   silencio largo o para empezar en un compás distinto).
+// El formato clásico (array de objetos { m, b, d, h, f }) sigue siendo válido.
 
 const NOTE_NAMES = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
 function midiToName(m) { return NOTE_NAMES[((m % 12) + 12) % 12]; }
+
+// Nombre de nota ('C3', 'E4', 'F#4', 'Bb3'…) → número MIDI. NaN si el nombre es inválido.
+const NOTE_BASE = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+function midiFromName(name) {
+  const m = /^([a-gA-G])([#b]?)(\d)$/.exec(String(name).trim());
+  if (!m) return NaN;
+  const base = NOTE_BASE[m[1].toLowerCase()];
+  const acc = m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0;
+  const oct = parseInt(m[3], 10);
+  return base + acc + (oct + 1) * 12;
+}
 
 const R = 'R', L = 'L';
 
@@ -37,6 +65,69 @@ const LEVELS = [
   },
 ];
 
+// ── Compilador de la notación compacta → formato interno ──
+// Devuelve { jump } (salto @), { rest } (silencio &) o { m, d, f } (nota).
+function parseNoteToken(tok) {
+  const t = String(tok).trim();
+  if (!t) return null;
+  if (t[0] === '@') {
+    const beat = parseFloat(t.slice(1));
+    return { jump: Number.isFinite(beat) && beat >= 0 ? beat : 0 };
+  }
+  if (t[0] === '&') {
+    const d = parseFloat(t.slice(1));
+    return { rest: Number.isFinite(d) && d > 0 ? d : 1 };
+  }
+  const i = t.indexOf(':');
+  const name = (i >= 0 ? t.slice(0, i) : t).trim();
+  const spec = i >= 0 ? t.slice(i + 1).trim() : '';
+  let dur = 1, finger = null;
+  if (spec) {
+    const [ds, fs] = spec.split('/');
+    if (ds !== undefined && ds !== '') { const d = parseFloat(ds); if (Number.isFinite(d) && d > 0) dur = d; }
+    if (fs !== undefined && fs !== '') { const f = parseInt(fs, 10); if (Number.isInteger(f)) finger = f; }
+  }
+  return { m: midiFromName(name), d: dur, f: finger };
+}
+
+// Convierte una pista de tokens en notas { m, b, d, h, f } con pulso b automático.
+function compileTrack(tokens, hand) {
+  const out = [];
+  let beat = 0;
+  for (const tok of tokens) {
+    if (Array.isArray(tok)) {
+      // acorde: todas las notas suenan en `beat`; el cursor avanza la duración más larga
+      let maxD = 0;
+      for (const sub of tok) {
+        const p = parseNoteToken(sub);
+        if (!p || p.jump !== undefined || p.rest !== undefined) continue;
+        out.push({ m: p.m, b: beat, d: p.d, h: hand, f: p.f });
+        maxD = Math.max(maxD, p.d);
+      }
+      beat += maxD;
+      continue;
+    }
+    const p = parseNoteToken(tok);
+    if (!p) continue;
+    if (p.jump !== undefined) { beat = p.jump; continue; }
+    if (p.rest !== undefined) { beat += p.rest; continue; }
+    out.push({ m: p.m, b: beat, d: p.d, h: hand, f: p.f });
+    beat += p.d;
+  }
+  return out;
+}
+
+// Acepta el formato interno (array) o la notación compacta ({ R: [...], L: [...] }).
+function compileNotes(notes) {
+  if (Array.isArray(notes)) return notes;
+  const out = [];
+  for (const h of [R, L]) {
+    const toks = notes[h];
+    if (Array.isArray(toks)) out.push(...compileTrack(toks, h));
+  }
+  return out;
+}
+
 // ── Himno de la Alegría (Beethoven) · Do mayor · 4/4 · 8 compases ──
 // Mano derecha: melodía con 5 notas en posición fija (DO central).
 // Mano izquierda: acompañamiento con DO y SOL. Ninguna mano salta de su sitio.
@@ -52,43 +143,26 @@ const ODE_TO_JOY = {
   totalBeats: 32,
   whiteFrom: 48,           // primera tecla blanca visible del teclado guía (DO grave)
   whiteTo: 72,             // última (DO agudo) → 15 teclas blancas
-  notes: [
-    // ── Mano derecha (melodía) ──
-    // compás 1
-    { m: 64, b: 0,  d: 1, h: R, f: 3 }, { m: 64, b: 1,  d: 1, h: R, f: 3 },
-    { m: 65, b: 2,  d: 1, h: R, f: 4 }, { m: 67, b: 3,  d: 1, h: R, f: 5 },
-    // compás 2
-    { m: 67, b: 4,  d: 1, h: R, f: 5 }, { m: 65, b: 5,  d: 1, h: R, f: 4 },
-    { m: 64, b: 6,  d: 1, h: R, f: 3 }, { m: 62, b: 7,  d: 1, h: R, f: 2 },
-    // compás 3
-    { m: 60, b: 8,  d: 1, h: R, f: 1 }, { m: 60, b: 9,  d: 1, h: R, f: 1 },
-    { m: 62, b: 10, d: 1, h: R, f: 2 }, { m: 64, b: 11, d: 1, h: R, f: 3 },
-    // compás 4
-    { m: 64, b: 12, d: 1, h: R, f: 3 }, { m: 62, b: 13, d: 1, h: R, f: 2 },
-    { m: 62, b: 14, d: 2, h: R, f: 2 },
-    // compás 5
-    { m: 64, b: 16, d: 1, h: R, f: 3 }, { m: 64, b: 17, d: 1, h: R, f: 3 },
-    { m: 65, b: 18, d: 1, h: R, f: 4 }, { m: 67, b: 19, d: 1, h: R, f: 5 },
-    // compás 6
-    { m: 67, b: 20, d: 1, h: R, f: 5 }, { m: 65, b: 21, d: 1, h: R, f: 4 },
-    { m: 64, b: 22, d: 1, h: R, f: 3 }, { m: 62, b: 23, d: 1, h: R, f: 2 },
-    // compás 7
-    { m: 60, b: 24, d: 1, h: R, f: 1 }, { m: 60, b: 25, d: 1, h: R, f: 1 },
-    { m: 62, b: 26, d: 1, h: R, f: 2 }, { m: 64, b: 27, d: 1, h: R, f: 3 },
-    // compás 8
-    { m: 62, b: 28, d: 1, h: R, f: 2 }, { m: 60, b: 29, d: 1, h: R, f: 1 },
-    { m: 60, b: 30, d: 2, h: R, f: 1 },
-
-    // ── Mano izquierda (acompañamiento: DO y SOL) ──
-    { m: 48, b: 0,  d: 4, h: L, f: 5 },
-    { m: 55, b: 4,  d: 4, h: L, f: 1 },
-    { m: 48, b: 8,  d: 4, h: L, f: 5 },
-    { m: 48, b: 12, d: 2, h: L, f: 5 }, { m: 55, b: 14, d: 2, h: L, f: 1 },
-    { m: 48, b: 16, d: 4, h: L, f: 5 },
-    { m: 55, b: 20, d: 4, h: L, f: 1 },
-    { m: 48, b: 24, d: 4, h: L, f: 5 },
-    { m: 55, b: 28, d: 2, h: L, f: 1 }, { m: 48, b: 30, d: 2, h: L, f: 5 },
-  ],
+  notes: {
+    R: [
+      // compases 1–2
+      'E4:1/3', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'G4:1/5', 'F4:1/4', 'E4:1/3', 'D4:1/2',
+      // compases 3–4
+      'C4:1/1', 'C4:1/1', 'D4:1/2', 'E4:1/3',
+      'E4:1/3', 'D4:1/2', 'D4:2/2',
+      // compases 5–6
+      'E4:1/3', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'G4:1/5', 'F4:1/4', 'E4:1/3', 'D4:1/2',
+      // compases 7–8
+      'C4:1/1', 'C4:1/1', 'D4:1/2', 'E4:1/3',
+      'D4:1/2', 'C4:1/1', 'C4:2/1',
+    ],
+    L: [
+      'C3:4/5', 'G3:4/1', 'C3:4/5', 'C3:2/5', 'G3:2/1',
+      'C3:4/5', 'G3:4/1', 'C3:4/5', 'G3:2/1', 'C3:2/5',
+    ],
+  },
 };
 
 // ── Un pequeño sueño (original) · Do mayor · 4/4 · 8 compases ──
@@ -105,41 +179,22 @@ const UN_PEQUENO_SUENO = {
   totalBeats: 32,
   whiteFrom: 48,           // DO grave
   whiteTo: 72,             // DO agudo → 15 teclas blancas
-  notes: [
-    // ── Mano derecha (melodía) ──
-    // compás 1
-    { m: 64, b: 0,  d: 1, h: R, f: 3 }, { m: 67, b: 1,  d: 1, h: R, f: 5 },
-    { m: 67, b: 2,  d: 1, h: R, f: 5 }, { m: 64, b: 3,  d: 1, h: R, f: 3 },
-    // compás 2
-    { m: 62, b: 4,  d: 1, h: R, f: 2 }, { m: 64, b: 5,  d: 1, h: R, f: 3 },
-    { m: 60, b: 6,  d: 2, h: R, f: 1 },
-    // compás 3
-    { m: 64, b: 8,  d: 1, h: R, f: 3 }, { m: 65, b: 9,  d: 1, h: R, f: 4 },
-    { m: 67, b: 10, d: 1, h: R, f: 5 }, { m: 64, b: 11, d: 1, h: R, f: 3 },
-    // compás 4
-    { m: 62, b: 12, d: 1, h: R, f: 2 }, { m: 60, b: 13, d: 3, h: R, f: 1 },
-    // compás 5
-    { m: 64, b: 16, d: 1, h: R, f: 3 }, { m: 67, b: 17, d: 1, h: R, f: 5 },
-    { m: 67, b: 18, d: 1, h: R, f: 5 }, { m: 64, b: 19, d: 1, h: R, f: 3 },
-    // compás 6
-    { m: 62, b: 20, d: 1, h: R, f: 2 }, { m: 64, b: 21, d: 1, h: R, f: 3 },
-    { m: 67, b: 22, d: 2, h: R, f: 5 },
-    // compás 7
-    { m: 67, b: 24, d: 1, h: R, f: 5 }, { m: 65, b: 25, d: 1, h: R, f: 4 },
-    { m: 64, b: 26, d: 1, h: R, f: 3 }, { m: 62, b: 27, d: 1, h: R, f: 2 },
-    // compás 8
-    { m: 60, b: 28, d: 4, h: R, f: 1 },
-
-    // ── Mano izquierda (una nota larga por compás) ──
-    { m: 48, b: 0,  d: 4, h: L, f: 5 },
-    { m: 55, b: 4,  d: 4, h: L, f: 1 },
-    { m: 53, b: 8,  d: 4, h: L, f: 2 },
-    { m: 48, b: 12, d: 4, h: L, f: 5 },
-    { m: 48, b: 16, d: 4, h: L, f: 5 },
-    { m: 55, b: 20, d: 4, h: L, f: 1 },
-    { m: 53, b: 24, d: 4, h: L, f: 2 },
-    { m: 48, b: 28, d: 4, h: L, f: 5 },
-  ],
+  notes: {
+    R: [
+      'E4:1/3', 'G4:1/5', 'G4:1/5', 'E4:1/3',
+      'D4:1/2', 'E4:1/3', 'C4:2/1',
+      'E4:1/3', 'F4:1/4', 'G4:1/5', 'E4:1/3',
+      'D4:1/2', 'C4:3/1',
+      'E4:1/3', 'G4:1/5', 'G4:1/5', 'E4:1/3',
+      'D4:1/2', 'E4:1/3', 'G4:2/5',
+      'G4:1/5', 'F4:1/4', 'E4:1/3', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      'C3:4/5', 'G3:4/1', 'E3:4/2', 'C3:4/5',
+      'C3:4/5', 'G3:4/1', 'E3:4/2', 'C3:4/5',
+    ],
+  },
 };
 
 // ── El primer rayo de sol (Gemini) · Do mayor · 4/4 · 8 compases ──
@@ -157,41 +212,60 @@ const PRIMER_RAYO_DE_SOL = {
   totalBeats: 32,
   whiteFrom: 48,          // DO grave
   whiteTo: 72,            // DO agudo → 15 teclas blancas
-  notes: [
-    // ── Mano derecha (melodía) ──
-    // compás 1
-    { m: 60, b: 0,  d: 1, h: R, f: 1 }, { m: 62, b: 1,  d: 1, h: R, f: 2 },
-    { m: 64, b: 2,  d: 1, h: R, f: 3 }, { m: 67, b: 3,  d: 1, h: R, f: 5 },
-    // compás 2 (silencio en el 4º tiempo)
-    { m: 64, b: 4,  d: 1, h: R, f: 3 }, { m: 62, b: 5,  d: 1, h: R, f: 2 },
-    { m: 60, b: 6,  d: 1, h: R, f: 1 },
-    // compás 3
-    { m: 64, b: 8,  d: 1, h: R, f: 3 }, { m: 65, b: 9,  d: 1, h: R, f: 4 },
-    { m: 67, b: 10, d: 1, h: R, f: 5 }, { m: 64, b: 11, d: 1, h: R, f: 3 },
-    // compás 4
-    { m: 62, b: 12, d: 4, h: R, f: 2 },
-    // compás 5
-    { m: 67, b: 16, d: 1, h: R, f: 5 }, { m: 65, b: 17, d: 1, h: R, f: 4 },
-    { m: 64, b: 18, d: 1, h: R, f: 3 }, { m: 62, b: 19, d: 1, h: R, f: 2 },
-    // compás 6
-    { m: 60, b: 20, d: 1, h: R, f: 1 }, { m: 64, b: 21, d: 1, h: R, f: 3 },
-    { m: 67, b: 22, d: 1, h: R, f: 5 }, { m: 64, b: 23, d: 1, h: R, f: 3 },
-    // compás 7 (4º tiempo: Do para mantener la posición fija)
-    { m: 62, b: 24, d: 1, h: R, f: 2 }, { m: 64, b: 25, d: 1, h: R, f: 3 },
-    { m: 62, b: 26, d: 1, h: R, f: 2 }, { m: 60, b: 27, d: 1, h: R, f: 1 },
-    // compás 8 (final dulce: Do sostenido)
-    { m: 60, b: 28, d: 4, h: R, f: 1 },
+  notes: {
+    R: [
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
+      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',   // compás 2 con silencio en el 4º tiempo
+      'E4:1/3', 'F4:1/4', 'G4:1/5', 'E4:1/3',
+      'D4:4/2',
+      'G4:1/5', 'F4:1/4', 'E4:1/3', 'D4:1/2',
+      'C4:1/1', 'E4:1/3', 'G4:1/5', 'E4:1/3',
+      'D4:1/2', 'E4:1/3', 'D4:1/2', 'C4:1/1',
+      'C4:4/1',
+    ],
+    L: [
+      'C3:4/5', 'G3:3/1', 'C3:4/5', 'G3:4/1',
+      'E3:4/3', 'C3:4/5', 'G3:4/1', 'C3:4/5',
+    ],
+  },
+};
 
-    // ── Mano izquierda (una nota larga por compás) ──
-    { m: 48, b: 0,  d: 4, h: L, f: 5 },
-    { m: 55, b: 4,  d: 3, h: L, f: 1 },
-    { m: 48, b: 8,  d: 4, h: L, f: 5 },
-    { m: 55, b: 12, d: 4, h: L, f: 1 },
-    { m: 52, b: 16, d: 4, h: L, f: 3 },
-    { m: 48, b: 20, d: 4, h: L, f: 5 },
-    { m: 55, b: 24, d: 4, h: L, f: 1 },
-    { m: 48, b: 28, d: 4, h: L, f: 5 },
-  ],
+// ── Dulce Navidad / Jingle Bells (J. L. Pierpont) · Do mayor · 4/4 · 8 compases ──
+// Posición fija de Do mayor: ninguna mano se mueve de sitio.
+// Mano derecha: estribillo clásico con las 5 notas centrales (DO4–SOL4).
+// Mano izquierda: acompañamiento armónico de redondas (DO3, FA3 y SOL3).
+const DULCE_NAVIDAD = {
+  id: 'dulce-navidad',
+  title: 'Dulce Navidad',
+  composer: 'J. L. Pierpont',
+  subtitle: 'Nivel 3 · Do mayor',
+  emoji: '🎄',
+  level: 3,
+  bpm: 84,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2
+      'E4:1/3', 'E4:1/3', 'E4:2/3',
+      'E4:1/3', 'E4:1/3', 'E4:2/3',
+      // compases 3–4
+      'E4:1/3', 'G4:1/5', 'C4:1/1', 'D4:1/2',
+      'E4:4/3',
+      // compases 5–6
+      'F4:1/4', 'F4:1/4', 'F4:1/4', 'F4:1/4',
+      'F4:1/4', 'E4:1/3', 'E4:1/3', 'E4:1/3',
+      // compases 7–8
+      'G4:1/5', 'G4:1/5', 'F4:1/4', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      'C3:4/5', 'G3:4/1', 'C3:4/5', 'G3:4/1',
+      'F3:4/2', 'C3:4/5', 'G3:4/1', 'C3:4/5',
+    ],
+  },
 };
 
 // ── Mary tenía un corderito (Popular) · Do mayor · 4/4 · 8 compases ──
@@ -208,32 +282,18 @@ const MARY_CORDERITO = {
   whiteFrom: 48,           // DO grave
   whiteTo: 72,             // DO agudo → 15 teclas blancas
   level: 1,
-  notes: [
-    // ── Mano derecha (melodía) ──
-    // compás 1
-    { m: 64, b: 0,  d: 1, h: R, f: 3 }, { m: 62, b: 1,  d: 1, h: R, f: 2 },
-    { m: 60, b: 2,  d: 1, h: R, f: 1 }, { m: 62, b: 3,  d: 1, h: R, f: 2 },
-    // compás 2
-    { m: 64, b: 4,  d: 1, h: R, f: 3 }, { m: 64, b: 5,  d: 1, h: R, f: 3 },
-    { m: 64, b: 6,  d: 2, h: R, f: 3 },
-    // compás 3
-    { m: 62, b: 8,  d: 1, h: R, f: 2 }, { m: 62, b: 9,  d: 1, h: R, f: 2 },
-    { m: 62, b: 10, d: 2, h: R, f: 2 },
-    // compás 4
-    { m: 64, b: 12, d: 1, h: R, f: 3 }, { m: 67, b: 13, d: 1, h: R, f: 5 },
-    { m: 67, b: 14, d: 2, h: R, f: 5 },
-    // compás 5 (como el 1)
-    { m: 64, b: 16, d: 1, h: R, f: 3 }, { m: 62, b: 17, d: 1, h: R, f: 2 },
-    { m: 60, b: 18, d: 1, h: R, f: 1 }, { m: 62, b: 19, d: 1, h: R, f: 2 },
-    // compás 6
-    { m: 64, b: 20, d: 1, h: R, f: 3 }, { m: 64, b: 21, d: 1, h: R, f: 3 },
-    { m: 64, b: 22, d: 1, h: R, f: 3 }, { m: 64, b: 23, d: 1, h: R, f: 3 },
-    // compás 7
-    { m: 62, b: 24, d: 1, h: R, f: 2 }, { m: 62, b: 25, d: 1, h: R, f: 2 },
-    { m: 64, b: 26, d: 1, h: R, f: 3 }, { m: 62, b: 27, d: 1, h: R, f: 2 },
-    // compás 8
-    { m: 60, b: 28, d: 4, h: R, f: 1 },
-  ],
+  notes: {
+    R: [
+      'E4:1/3', 'D4:1/2', 'C4:1/1', 'D4:1/2',
+      'E4:1/3', 'E4:1/3', 'E4:2/3',
+      'D4:1/2', 'D4:1/2', 'D4:2/2',
+      'E4:1/3', 'G4:1/5', 'G4:2/5',
+      'E4:1/3', 'D4:1/2', 'C4:1/1', 'D4:1/2',
+      'E4:1/3', 'E4:1/3', 'E4:1/3', 'E4:1/3',
+      'D4:1/2', 'D4:1/2', 'E4:1/3', 'D4:1/2',
+      'C4:4/1',
+    ],
+  },
 };
 
 // ── Pan caliente (Popular) · Do mayor · 4/4 · 5 compases ──
@@ -250,19 +310,15 @@ const PAN_CALIENTE = {
   whiteFrom: 48,
   whiteTo: 72,
   level: 1,
-  notes: [
-    // ── Mano derecha (melodía) ──
-    { m: 64, b: 0,  d: 1, h: R, f: 3 }, { m: 62, b: 1,  d: 1, h: R, f: 2 },
-    { m: 60, b: 2,  d: 1, h: R, f: 1 },
-    { m: 64, b: 4,  d: 1, h: R, f: 3 }, { m: 62, b: 5,  d: 1, h: R, f: 2 },
-    { m: 60, b: 6,  d: 1, h: R, f: 1 },
-    { m: 60, b: 8,  d: 1, h: R, f: 1 }, { m: 60, b: 9,  d: 1, h: R, f: 1 },
-    { m: 60, b: 10, d: 1, h: R, f: 1 }, { m: 60, b: 11, d: 1, h: R, f: 1 },
-    { m: 62, b: 12, d: 1, h: R, f: 2 }, { m: 62, b: 13, d: 1, h: R, f: 2 },
-    { m: 62, b: 14, d: 1, h: R, f: 2 }, { m: 62, b: 15, d: 1, h: R, f: 2 },
-    { m: 64, b: 16, d: 1, h: R, f: 3 }, { m: 62, b: 17, d: 1, h: R, f: 2 },
-    { m: 60, b: 18, d: 2, h: R, f: 1 },
-  ],
+  notes: {
+    R: [
+      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
+      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
+      'C4:1/1', 'C4:1/1', 'C4:1/1', 'C4:1/1',
+      'D4:1/2', 'D4:1/2', 'D4:1/2', 'D4:1/2',
+      'E4:1/3', 'D4:1/2', 'C4:2/1',
+    ],
+  },
 };
 
 // ── El tren de madera (original) · Do mayor · 4/4 · 6 compases ──
@@ -279,20 +335,16 @@ const TREN_MADERA = {
   whiteFrom: 48,
   whiteTo: 72,
   level: 2,
-  notes: [
-    // ── Mano izquierda (melodía) ──
-    { m: 55, b: 0,  d: 1, h: L, f: 1 }, { m: 55, b: 1,  d: 1, h: L, f: 1 },
-    { m: 48, b: 2,  d: 1, h: L, f: 5 }, { m: 48, b: 3,  d: 1, h: L, f: 5 },
-    { m: 50, b: 4,  d: 1, h: L, f: 4 }, { m: 50, b: 5,  d: 1, h: L, f: 4 },
-    { m: 52, b: 6,  d: 1, h: L, f: 3 }, { m: 52, b: 7,  d: 1, h: L, f: 3 },
-    { m: 48, b: 8,  d: 1, h: L, f: 5 }, { m: 48, b: 9,  d: 1, h: L, f: 5 },
-    { m: 55, b: 10, d: 1, h: L, f: 1 }, { m: 55, b: 11, d: 1, h: L, f: 1 },
-    { m: 52, b: 12, d: 1, h: L, f: 3 }, { m: 50, b: 13, d: 1, h: L, f: 4 },
-    { m: 48, b: 14, d: 1, h: L, f: 5 }, { m: 48, b: 15, d: 1, h: L, f: 5 },
-    { m: 55, b: 16, d: 1, h: L, f: 1 }, { m: 55, b: 17, d: 1, h: L, f: 1 },
-    { m: 52, b: 18, d: 1, h: L, f: 3 }, { m: 50, b: 19, d: 1, h: L, f: 4 },
-    { m: 48, b: 20, d: 4, h: L, f: 5 },
-  ],
+  notes: {
+    L: [
+      'G3:1/1', 'G3:1/1', 'C3:1/5', 'C3:1/5',
+      'D3:1/4', 'D3:1/4', 'E3:1/3', 'E3:1/3',
+      'C3:1/5', 'C3:1/5', 'G3:1/1', 'G3:1/1',
+      'E3:1/3', 'D3:1/4', 'C3:1/5', 'C3:1/5',
+      'G3:1/1', 'G3:1/1', 'E3:1/3', 'D3:1/4',
+      'C3:4/5',
+    ],
+  },
 };
 
 // ── La ronda del sol (original) · Do mayor · 4/4 · 8 compases ──
@@ -309,34 +361,65 @@ const RONDA_SOL = {
   whiteFrom: 48,
   whiteTo: 72,
   level: 2,
-  notes: [
-    // ── Mano izquierda (melodía) ──
-    // compás 1
-    { m: 48, b: 0,  d: 1, h: L, f: 5 }, { m: 52, b: 1,  d: 1, h: L, f: 3 },
-    { m: 55, b: 2,  d: 1, h: L, f: 1 }, { m: 52, b: 3,  d: 1, h: L, f: 3 },
-    // compás 2
-    { m: 50, b: 4,  d: 1, h: L, f: 4 }, { m: 55, b: 5,  d: 1, h: L, f: 1 },
-    { m: 52, b: 6,  d: 1, h: L, f: 3 }, { m: 50, b: 7,  d: 1, h: L, f: 4 },
-    // compás 3
-    { m: 48, b: 8,  d: 1, h: L, f: 5 }, { m: 52, b: 9,  d: 1, h: L, f: 3 },
-    { m: 55, b: 10, d: 1, h: L, f: 1 }, { m: 52, b: 11, d: 1, h: L, f: 3 },
-    // compás 4
-    { m: 52, b: 12, d: 1, h: L, f: 3 }, { m: 50, b: 13, d: 1, h: L, f: 4 },
-    { m: 48, b: 14, d: 1, h: L, f: 5 }, { m: 48, b: 15, d: 1, h: L, f: 5 },
-    // compás 5
-    { m: 55, b: 16, d: 1, h: L, f: 1 }, { m: 52, b: 17, d: 1, h: L, f: 3 },
-    { m: 50, b: 18, d: 1, h: L, f: 4 }, { m: 50, b: 19, d: 1, h: L, f: 4 },
-    // compás 6
-    { m: 52, b: 20, d: 1, h: L, f: 3 }, { m: 50, b: 21, d: 1, h: L, f: 4 },
-    { m: 48, b: 22, d: 1, h: L, f: 5 }, { m: 50, b: 23, d: 1, h: L, f: 4 },
-    // compás 7
-    { m: 52, b: 24, d: 1, h: L, f: 3 }, { m: 55, b: 25, d: 1, h: L, f: 1 },
-    { m: 52, b: 26, d: 1, h: L, f: 3 }, { m: 50, b: 27, d: 1, h: L, f: 4 },
-    // compás 8
-    { m: 48, b: 28, d: 4, h: L, f: 5 },
-  ],
+  notes: {
+    L: [
+      'C3:1/5', 'E3:1/3', 'G3:1/1', 'E3:1/3',
+      'D3:1/4', 'G3:1/1', 'E3:1/3', 'D3:1/4',
+      'C3:1/5', 'E3:1/3', 'G3:1/1', 'E3:1/3',
+      'E3:1/3', 'D3:1/4', 'C3:1/5', 'C3:1/5',
+      'G3:1/1', 'E3:1/3', 'D3:1/4', 'D3:1/4',
+      'E3:1/3', 'D3:1/4', 'C3:1/5', 'D3:1/4',
+      'E3:1/3', 'G3:1/1', 'E3:1/3', 'D3:1/4',
+      'C3:4/5',
+    ],
+  },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL];
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL]
+  .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
-export { SONGS, LEVELS, R, L, midiToName };
+// ── Validación del catálogo (modo dev) ──
+// Comprueba las reglas de integridad de todas las canciones: ids únicos, nivel existente,
+// pulsos dentro de totalBeats, dedos 1–5, notas dentro de whiteFrom..whiteTo y coherencia
+// de manos con el nivel. Devuelve un array de problemas (vacío = todo correcto).
+function validateSongs(songs = SONGS) {
+  const problems = [];
+  const seen = new Set();
+  for (const s of songs) {
+    const tag = s.id || s.title || '(sin id)';
+    if (!s.id || seen.has(s.id)) problems.push(`${tag}: id vacío o repetido`);
+    seen.add(s.id);
+    if (!LEVELS.some((l) => l.id === s.level)) problems.push(`${tag}: level ${s.level} no existe en LEVELS`);
+    if (!(s.bpm > 0)) problems.push(`${tag}: bpm debe ser > 0`);
+    if (!(s.beatsPerMeasure > 0)) problems.push(`${tag}: beatsPerMeasure debe ser > 0`);
+    if (!(s.totalBeats > 0)) problems.push(`${tag}: totalBeats debe ser > 0`);
+    if (!(s.whiteFrom < s.whiteTo)) problems.push(`${tag}: whiteFrom debe ser < whiteTo`);
+    if (!Array.isArray(s.notes) || s.notes.length === 0) { problems.push(`${tag}: sin notas`); continue; }
+    const hands = new Set();
+    let end = 0;
+    for (const n of s.notes) {
+      if (!Number.isInteger(n.m) || n.m < s.whiteFrom || n.m > s.whiteTo) {
+        problems.push(`${tag}: nota MIDI ${n.m} fuera de [${s.whiteFrom}, ${s.whiteTo}]`);
+      }
+      if (!Number.isFinite(n.b) || n.b < 0) problems.push(`${tag}: pulso b inválido (${n.b})`);
+      if (!Number.isFinite(n.d) || n.d <= 0) problems.push(`${tag}: duración d inválida (${n.d})`);
+      if (Number.isFinite(n.b) && Number.isFinite(n.d) && n.b + n.d > s.totalBeats + 1e-9) {
+        problems.push(`${tag}: nota en pulso ${n.b} con duración ${n.d} se pasa del final (${s.totalBeats})`);
+      }
+      if (!Number.isInteger(n.f) || n.f < 1 || n.f > 5) problems.push(`${tag}: dedo f=${n.f} (debe ser 1–5)`);
+      if (n.h !== R && n.h !== L) problems.push(`${tag}: mano h=${n.h} (debe ser R o L)`);
+      hands.add(n.h);
+      end = Math.max(end, n.b + n.d);
+    }
+    if (Math.abs(end - s.totalBeats) > 1e-6) {
+      problems.push(`AVISO: ${tag}: la última nota termina en el pulso ${end}, pero totalBeats=${s.totalBeats}`);
+    }
+    const hasR = hands.has(R), hasL = hands.has(L);
+    if (s.level === 1 && !(hasR && !hasL)) problems.push(`${tag}: el nivel 1 debe ser sólo mano derecha (R)`);
+    if (s.level === 2 && !(hasL && !hasR)) problems.push(`${tag}: el nivel 2 debe ser sólo mano izquierda (L)`);
+    if (s.level === 3 && !(hasR && hasL)) problems.push(`${tag}: el nivel 3 debe tener las dos manos (R y L)`);
+  }
+  return problems;
+}
+
+export { SONGS, LEVELS, R, L, midiToName, midiFromName, compileNotes, validateSongs };
