@@ -230,6 +230,44 @@ const PRIMER_RAYO_DE_SOL = {
   },
 };
 
+// ── Dulce Navidad / Jingle Bells (J. L. Pierpont) · Do mayor · 4/4 · 8 compases ──
+// Posición fija de Do mayor: ninguna mano se mueve de sitio.
+// Mano derecha: estribillo clásico con las 5 notas centrales (DO4–SOL4).
+// Mano izquierda: acompañamiento armónico de redondas (DO3, FA3 y SOL3).
+const DULCE_NAVIDAD = {
+  id: 'dulce-navidad',
+  title: 'Dulce Navidad',
+  composer: 'J. L. Pierpont',
+  subtitle: 'Nivel 3 · Do mayor',
+  emoji: '🎄',
+  level: 3,
+  bpm: 84,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2
+      'E4:1/3', 'E4:1/3', 'E4:2/3',
+      'E4:1/3', 'E4:1/3', 'E4:2/3',
+      // compases 3–4
+      'E4:1/3', 'G4:1/5', 'C4:1/1', 'D4:1/2',
+      'E4:4/3',
+      // compases 5–6
+      'F4:1/4', 'F4:1/4', 'F4:1/4', 'F4:1/4',
+      'F4:1/4', 'E4:1/3', 'E4:1/3', 'E4:1/3',
+      // compases 7–8
+      'G4:1/5', 'G4:1/5', 'F4:1/4', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      'C3:4/5', 'G3:4/1', 'C3:4/5', 'G3:4/1',
+      'F3:4/2', 'C3:4/5', 'G3:4/1', 'C3:4/5',
+    ],
+  },
+};
+
 // ── Mary tenía un corderito (Popular) · Do mayor · 4/4 · 8 compases ──
 // Nivel 1: mano derecha SOLA, posición fija de Do central (60–67). Ninguna mano salta.
 const MARY_CORDERITO = {
@@ -337,7 +375,7 @@ const RONDA_SOL = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL]
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──
