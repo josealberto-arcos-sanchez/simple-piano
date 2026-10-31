@@ -136,8 +136,8 @@ suite('Catálogo de canciones', () => {
     assert(Array.isArray(problems) && problems.length === 0,
       'problemas encontrados:\n' + problems.join('\n'));
   });
-  test('hay 10 canciones con id único', () => {
-    assert(SONGS.length === 10, `esperaba 10 canciones, hay ${SONGS.length}`);
+  test('hay 11 canciones con id único', () => {
+    assert(SONGS.length === 11, `esperaba 11 canciones, hay ${SONGS.length}`);
     const ids = new Set(SONGS.map((s) => s.id));
     assert(ids.size === SONGS.length, 'hay ids repetidos');
   });
@@ -154,7 +154,7 @@ suite('Progresión: modos y estrellas', () => {
     assert(Progression.maxStarsOfLevel(1) === 12, 'Nivel 1 debía ser 12');
     assert(Progression.maxStarsOfLevel(2) === 12, 'Nivel 2 debía ser 12');
     assert(Progression.maxStarsOfLevel(3) === 48, 'Nivel 3 debía ser 48');
-    assert(Progression.maxStarsOfLevel(4) === 24, 'Nivel 4 debía ser 24');
+    assert(Progression.maxStarsOfLevel(4) === 36, 'Nivel 4 debía ser 36');
   });
   test('modos disponibles según las manos', () => {
     const lvl1 = SONGS.find((s) => s.level === 1);
