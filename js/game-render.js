@@ -7,8 +7,8 @@ import { midiToName } from './songs.js';
 
 const GameRenderer = (canvas, engine) => {
   const HAND = {
-    R: { fill: '#22c55e', edge: '#86efac' },  // mano derecha: verde
-    L: { fill: '#6366f1', edge: '#a5b4fc' },  // mano izquierda: morado
+    R: { fill: '#22c55e' },  // mano derecha: verde
+    L: { fill: '#6366f1' },  // mano izquierda: morado
   };
   const GOLD = '#ffd166';
   const RED = '#ef4444';
@@ -18,6 +18,12 @@ const GameRenderer = (canvas, engine) => {
   let ctx = canvas.getContext('2d'), W = 0, H = 0;
   let kb = null;                    // geometría del teclado guía
   let particles = [], hitFx = [], wrongFlash = null, shake = 0;
+
+  // Gradientes que no dependen de la partida: se crean una sola vez en resize()
+  // (fondo y línea de acierto en sus dos intensidades) y se reutilizan en cada frame.
+  let bgGrad = null, hitLineGrad = null, hitLineStrongGrad = null;
+  let xCache = new Map();           // midi → centro X de tecla (O(1))
+  let keyIndex = new Map();         // midi → índice de tecla blanca
 
   function isBlack(m) { return BLACK_SET.has(((m % 12) + 12) % 12); }
 
@@ -31,14 +37,34 @@ const GameRenderer = (canvas, engine) => {
     kb.pxBeat = kb.hitY / 4.6;      // ~4,5 pulsos visibles por pantalla
   }
 
-  function keyX(m) {               // centro horizontal de la tecla
-    const wm = kb.whitesMidi;
-    const i = wm.indexOf(m);
-    if (i >= 0) return (i + 0.5) * kb.kw;
-    let prevI = 0;
-    for (let k = 0; k < wm.length; k++) { if (wm[k] < m) prevI = k; else break; }
-    return (prevI + 1) * kb.kw;    // las negras van sobre la frontera entre blancas
+  function makeHitLineGrad(strong) {
+    const g = ctx.createLinearGradient(0, kb.hitY - 3, 0, kb.hitY + 3);
+    g.addColorStop(0, 'rgba(255,209,102,0)');
+    g.addColorStop(0.5, `rgba(255,209,102,${0.9 * strong})`);
+    g.addColorStop(1, 'rgba(255,209,102,0)');
+    return g;
   }
+
+  function cacheGeometry() {
+    // tablas de búsqueda para geometría de teclas (evita indexOf/escaneos por frame)
+    const from = engine.state.song.whiteFrom, to = engine.state.song.whiteTo;
+    const whites = kb.whitesMidi;
+    xCache = new Map();
+    keyIndex = new Map();
+    for (let i = 0; i < whites.length; i++) {
+      keyIndex.set(whites[i], i);
+      xCache.set(whites[i], (i + 0.5) * kb.kw);
+    }
+    // negras: sobre la frontera entre la blanca anterior y la siguiente
+    for (let m = from; m <= to; m++) {
+      if (xCache.has(m)) continue;
+      let prevI = 0;
+      for (let k = 0; k < whites.length; k++) { if (whites[k] < m) prevI = k; else break; }
+      xCache.set(m, (prevI + 1) * kb.kw);
+    }
+  }
+
+  function keyX(m) { return xCache.get(m) ?? 0; }   // centro horizontal de la tecla
   function keyWidth(m) { return isBlack(m) ? kb.kw * 0.58 : kb.kw * 0.84; }
 
   function resize() {
@@ -53,6 +79,13 @@ const GameRenderer = (canvas, engine) => {
     const from = song.whiteFrom, to = song.whiteTo;
     for (let w = from; w <= to; w++) { if (!isBlack(w)) kb.whitesMidi.push(w); }
     layout();
+    cacheGeometry();
+    // gradientes cacheados (una sola creación por resize, no por frame)
+    bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, '#171325');
+    bgGrad.addColorStop(1, '#221b3a');
+    hitLineGrad = makeHitLineGrad(0.55);
+    hitLineStrongGrad = makeHitLineGrad(1);
   }
 
   // Traduce los efectos de un solo disparo del motor en estado visual.
@@ -95,11 +128,8 @@ const GameRenderer = (canvas, engine) => {
     particles.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; p.life -= dt; });
     particles = particles.filter((p) => p.life > 0);
 
-    // fondo
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#171325');
-    bg.addColorStop(1, '#221b3a');
-    ctx.fillStyle = bg;
+    // fondo (gradiente cacheado en resize())
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
 
     drawGrid(st);
@@ -166,18 +196,8 @@ const GameRenderer = (canvas, engine) => {
       ctx.globalAlpha = gold !== undefined
         ? 0.25 + 0.75 * (gold / HIT_FADE)
         : (isPast && !isPend ? 0.45 : (isHit ? 0.55 : 1));
-      // cuerpo
-      const grad = ctx.createLinearGradient(0, y - h, 0, y);
-      if (gold !== undefined) {
-        grad.addColorStop(0, '#fff7d6');
-        grad.addColorStop(0.25, GOLD);
-        grad.addColorStop(1, '#f59e0b');
-      } else {
-        grad.addColorStop(0, c.edge);
-        grad.addColorStop(0.25, c.fill);
-        grad.addColorStop(1, c.fill);
-      }
-      ctx.fillStyle = grad;
+      // cuerpo (color sólido: evita crear un CanvasGradient por nota y por frame)
+      ctx.fillStyle = gold !== undefined ? GOLD : c.fill;
       roundRect(x + dx, y - h, w, h, 9);
       ctx.fill();
       // brillo superior
@@ -209,13 +229,10 @@ const GameRenderer = (canvas, engine) => {
   }
 
   function drawHitLine(st) {
-    const glow = ctx.createLinearGradient(0, kb.hitY - 3, 0, kb.hitY + 3);
-    const strong = st.pending ? 1 : 0.55;
-    glow.addColorStop(0, `rgba(255,209,102,0)`);
-    glow.addColorStop(0.5, `rgba(255,209,102,${0.9 * strong})`);
-    glow.addColorStop(1, `rgba(255,209,102,0)`);
-    ctx.fillStyle = glow;
+    // gradiente cacheado (dos intensidades según haya nota pendiente o no)
+    ctx.fillStyle = st.pending ? hitLineStrongGrad : hitLineGrad;
     ctx.fillRect(0, kb.hitY - 3, W, 6);
+    const strong = st.pending ? 1 : 0.55;
     ctx.fillStyle = `rgba(255,209,102,${0.25 * strong})`;
     ctx.fillRect(0, kb.hitY, W, 3);
   }
@@ -236,8 +253,8 @@ const GameRenderer = (canvas, engine) => {
     }
     // teclas mantenidas por la niña ahora mismo (feedback vivo)
     for (const m of st.pressed) {
-      const i = wm.indexOf(m);
-      if (i >= 0) {
+      const i = keyIndex.get(m);
+      if (i !== undefined) {
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.fillRect(i * kb.kw + 1, kb.y + 2, kb.kw - 2, kb.h - 4);
       }
@@ -269,10 +286,13 @@ const GameRenderer = (canvas, engine) => {
       ctx.fill();
       ctx.globalAlpha = 1;
     };
+    // consultas O(1) de destellos (evita .some()/.find() por tecla iluminada)
+    const hitT = new Map();
+    for (const f of hitFx) hitT.set(f.midi, f.t);
     for (const [m, color] of hl) {
-      const isHitFx = hitFx.some((f) => f.midi === m);
+      const t = hitT.get(m);
       const isWrong = wrongFlash && wrongFlash.midi === m;
-      const alpha = isHitFx ? 0.75 * (hitFx.find((f) => f.midi === m).t / 0.5)
+      const alpha = t !== undefined ? 0.75 * (t / 0.5)
         : isWrong ? 0.6 * (wrongFlash.t / 0.55)
         : 0.5 + Math.sin(now * 6) * 0.15;   // pulso de objetivo
       drawKeyOverlay(m, color, Math.max(0.15, alpha));

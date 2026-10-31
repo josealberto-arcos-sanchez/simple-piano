@@ -93,8 +93,15 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
 * **Impacto:** Si en el futuro quieres responder a la pregunta abierta de `docs/diseno.md` (*"¿La niña prefiere las notas cayendo o empezar con las notas fijas y grandes?"* o añadir pentagrama), tendrás que reescribir o llenar de `if/else` el mismo archivo que controla las reglas de acierto.
 * **Mejora:** Separar la **simulación/estado de la partida** (`GameState` / `GameEngine`) del **renderizador** (`CanvasRenderer`). El motor actualiza el estado en `update(dt)` y el renderizador simplemente recibe ese estado y lo dibuja. Además, esto permite testear toda la lógica del juego sin necesidad de un `<canvas>`.
 
-#### 8. Rendimiento de dibujado en Canvas en tablets modestas (`js/game.js`)
-* **Problema:** En cada frame (60 veces por segundo), `draw()` crea desde cero el gradiente de fondo (`ctx.createLinearGradient(0, 0, 0, H)`), el gradiente de la línea de acierto, y un gradiente lineal por cada nota visible en pantalla (`js/game.js:350`). También busca linealmente con `.some()` y `.find()` dentro de `hitFx` por cada tecla iluminada (`js/game.js:453-455`).
+#### 8. ✅ Realizado — Rendimiento de dibujado en Canvas en tablets modestas (`js/game-render.js`)
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * **Gradientes cacheados**: el gradiente de fondo, el de la línea de acierto y su variante intensa (cuando hay nota pendiente) se crean una sola vez en `resize()` (`bgGrad`, `hitLineGrad`, `hitLineStrongGrad`) y se reutilizan en cada frame; ya no se construye ningún `CanvasGradient` dentro de `draw()`.
+  * **Colores sólidos para las notas**: el cuerpo de cada nota se pinta con color sólido (`HAND[h].fill` o `GOLD` si es destello dorado) en lugar de crear un gradiente nuevo por nota y por frame; se conservan el brillo superior, el borde y las transparencias. Se eliminó la paleta muerta `edge` de `HAND`.
+  * **Consultas O(1)**: el resaltado del teclado usa un `Map` (`hitT`) construido una vez por frame para los destellos de `hitFx`, eliminando los `.some()`/`.find()` que se hacían por cada tecla iluminada.
+  * **Geometría cacheada**: `cacheGeometry()` precalcula en `resize()` el centro X de cada tecla (`xCache`) y el índice de las blancas (`keyIndex`), con lo que `keyX()` y el feedback de teclas mantenidas dejan de hacer `indexOf`/escaneos en cada frame.
+  * Verificado en navegador: partida de "Mano derecha" con aciertos (E-D-C), HUD de progreso y consola sin errores.
+* **Problema original:** En cada frame (60 veces por segundo), `draw()` creaba desde cero el gradiente de fondo (`ctx.createLinearGradient(0, 0, 0, H)`), el gradiente de la línea de acierto, y un gradiente lineal por cada nota visible en pantalla. También buscaba linealmente con `.some()` y `.find()` dentro de `hitFx` por cada tecla iluminada.
 * **Impacto:** Aunque hoy con pocas notas va fluido, en canciones más largas o con más polifonía en tablets Android de gama de entrada, crear decenas de objetos `CanvasGradient` por frame genera presión en el recolector de basura (GC) y tirones (*frame drops*).
 * **Mejora:** Cachear los gradientes de fondo y de línea de acierto al hacer `resize()`, y usar colores sólidos (o un único gradiente precalculado/relativo) para el cuerpo de las notas.
 
