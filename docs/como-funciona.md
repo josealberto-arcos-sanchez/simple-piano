@@ -7,7 +7,10 @@
    derecha, 2 👈 mano izquierda, 3 ✨ las dos manos), todos **abiertos** desde
    el principio. Cada nivel muestra las estrellas conseguidas por el jugador
    (⭐ conseguidas / totales) y una barra de progreso; al completarlo del todo,
-   la tarjeta se corona 🏆.
+   la tarjeta se corona 🏆. Al entrar en un nivel aparece el **listado de sus
+   canciones** (tarjetas con emoji, título y sus propias estrellas ⭐
+   conseguidas / disponibles + barra de progreso). Al elegir una canción se
+   abre su tarjeta con los modos; con ⬅️ se vuelve al listado del nivel.
 2. Conecta el teclado de casa al tablet/móvil con el cable USB (en el teclado,
    si hay menú USB, elige **MIDI**).
 3. Abre la app con **Chrome** (es el navegador que lee teclados MIDI en Android).

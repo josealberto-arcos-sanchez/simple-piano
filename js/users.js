@@ -191,7 +191,7 @@ const Users = (() => {
           color: colorOf(inUser.color).id,
           createdAt: inUser.createdAt || new Date().toISOString(),
           prefs: {
-            view: inUser.prefs && inUser.prefs.view === 'level' ? 'level' : 'levels',
+            view: ['level', 'song'].includes(inUser.prefs && inUser.prefs.view) ? inUser.prefs.view : 'levels',
             levelId: inUser.prefs && typeof inUser.prefs.levelId === 'number' ? inUser.prefs.levelId : null,
             songId: inUser.prefs && inUser.prefs.songId,
             speed: inUser.prefs && inUser.prefs.speed,
