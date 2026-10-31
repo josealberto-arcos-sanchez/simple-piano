@@ -11,8 +11,33 @@ const App = (() => {
     both:   { title: '✨ ¡Las dos manos!', hint: '¡Verdes y moradas juntas! Tú puedes.', practice: true },
     free:   { title: '🎵 ¡Toca libre!', hint: '¡Ahora la música no se para! Toca cada nota cuando su rectángulo cruce la línea dorada. Cambia la velocidad con el botón de arriba.', practice: true },
   };
-  const NEXT = { rh: 'lh', lh: 'both', both: 'free' };
-  const NEXT_LABEL = { rh: '👈 Mano izquierda', lh: '✨ ¡Las dos manos!', both: '🎵 ¡Toca libre!' };
+
+  // Modos disponibles según las manos que participan en una canción.
+  // Nivel 1 (sólo R) → escuchar · derecha · libre · Nivel 2 (sólo L) → escuchar · izquierda · libre
+  // Nivel 3 (R y L) → los cinco modos.
+  function availableModes(song) {
+    const hasR = song.notes.some((n) => n.h === R);
+    const hasL = song.notes.some((n) => n.h === L);
+    const modes = ['listen'];
+    if (hasR) modes.push('rh');
+    if (hasL) modes.push('lh');
+    if (hasR && hasL) modes.push('both');
+    modes.push('free');
+    return modes;
+  }
+
+  // Modo siguiente al superar uno (respetando los modos de la canción).
+  function nextMode(mode, song) {
+    const modes = availableModes(song).filter((m) => m !== 'listen');
+    const i = modes.indexOf(mode);
+    return i >= 0 && i < modes.length - 1 ? modes[i + 1] : null;
+  }
+  function nextLabel(next) {
+    if (next === 'free') return '🎵 ¡Toca libre!';
+    if (next === 'lh') return '👈 Mano izquierda';
+    if (next === 'both') return '✨ ¡Las dos manos!';
+    return 'Siguiente ➡️';
+  }
 
   // Velocidad de la canción: multiplicador del tempo
   const SPEEDS = [
@@ -26,6 +51,10 @@ const App = (() => {
   let devMode = false;
   let wakeLock = null;
   let echoVoices = new Map();
+
+  // ── navegación por niveles ──
+  let view = 'levels';      // 'levels' (menú) | 'level' (detalle de un nivel)
+  let currentLevelId = 3;
 
   // ── perfiles de usuario (js/users.js) ──
   const SKEY = 'simple-piano-settings-v1';
@@ -48,10 +77,45 @@ const App = (() => {
     if (typeof activeUser.prefs.speed !== 'number' || !SPEEDS.some((s) => s.v === activeUser.prefs.speed)) {
       activeUser.prefs.speed = 1;
     }
-    song = SONGS.find((s) => s.id === activeUser.prefs.songId) || SONGS[0];
+    // ▸ nivel recordado (o el primero jugable si no existe / no tiene canciones aún)
+    const storedLevel = activeUser.prefs.levelId;
+    const playable = LEVELS.filter((l) => songsOfLevel(l.id).length > 0);
+    currentLevelId = playable.some((l) => l.id === storedLevel) ? storedLevel : (playable[0] ? playable[0].id : 3);
+    // ▸ canción recordada (debe pertenecer al nivel actual)
+    let s = SONGS.find((x) => x.id === activeUser.prefs.songId && x.level === currentLevelId);
+    if (!s) s = songsOfLevel(currentLevelId)[0] || SONGS[0];
+    song = s;
     activeUser.prefs.songId = song.id;
+    activeUser.prefs.levelId = currentLevelId;
+    // ▸ vista recordada (menú de niveles o detalle de nivel)
+    view = activeUser.prefs.view === 'level' ? 'level' : 'levels';
     Users.persist();
     updateSpeedUI();
+  }
+
+  // ── niveles: acceso y estrellas ──
+  function levelById(id) { return LEVELS.find((l) => l.id === id) || null; }
+  function songsOfLevel(id) { return SONGS.filter((s) => s.level === id); }
+
+  // Estrellas máximas de una canción: 3 por cada modo practicable (escuchar no da estrellas).
+  function maxStarsOfSong(s) {
+    return availableModes(s).reduce((acc, m) => acc + (m === 'listen' ? 0 : 3), 0);
+  }
+  function userStarsOfSong(u, s) {
+    if (!u) return 0;
+    const prog = u.progress[s.id] || {};
+    let t = 0;
+    for (const m of availableModes(s)) {
+      if (m === 'listen') continue;
+      if (prog[m] && prog[m].stars) t += prog[m].stars;
+    }
+    return t;
+  }
+  function maxStarsOfLevel(id) {
+    return songsOfLevel(id).reduce((acc, s) => acc + maxStarsOfSong(s), 0);
+  }
+  function userStarsOfLevel(u, id) {
+    return songsOfLevel(id).reduce((acc, s) => acc + userStarsOfSong(u, s), 0);
   }
 
   function starTotal(u) {
@@ -165,34 +229,139 @@ const App = (() => {
   }
 
   function selectSong(id) {
-    const found = SONGS.find((s) => s.id === id);
+    const found = SONGS.find((s) => s.id === id && s.level === currentLevelId);
     if (!found) return;
     song = found;
     const u = currentUser();
     if (u) { u.prefs.songId = song.id; Users.persist(); }
-    renderHome();
+    renderLevelView();
   }
 
+  function selectLevel(id) {
+    const lvl = levelById(id);
+    if (!lvl) return;
+    if (songsOfLevel(id).length === 0) {
+      $('#level-msg').textContent = 'Este nivel está en camino… ¡pronto habrá canciones!';
+      return;
+    }
+    currentLevelId = id;
+    const u = currentUser();
+    if (u) { u.prefs.levelId = id; Users.persist(); }
+    if (!songsOfLevel(id).some((s) => s.id === song.id)) {
+      song = songsOfLevel(id)[0];
+      if (u) { u.prefs.songId = song.id; Users.persist(); }
+    }
+    setView('level');
+  }
+
+  function backToLevels() {
+    AudioEngine.sfx('tap');
+    setView('levels');
+  }
+
+  function setView(v) {
+    view = v;
+    const u = currentUser();
+    if (u) { u.prefs.view = v; Users.persist(); }
+    $('#levels-view').classList.toggle('hidden', v !== 'levels');
+    $('#level-view').classList.toggle('hidden', v !== 'level');
+    $('#level-msg').textContent = '';
+    if (v === 'levels') renderLevels(); else renderLevelView();
+  }
+
+  // Pinta la pantalla de inicio en la vista recordada por el jugador.
   function renderHome() {
+    setView(view);
+  }
+
+  // Menú principal: tarjeta por nivel con sus estrellas (todas abiertas).
+  function renderLevels() {
     updateChip();
     updateUserChip();
+    const u = currentUser();
+    const list = $('#level-list');
+    list.innerHTML = '';
+    LEVELS.forEach((lvl) => {
+      const maxS = maxStarsOfLevel(lvl.id);
+      const got = u ? userStarsOfLevel(u, lvl.id) : 0;
+      const done = maxS > 0 && got === maxS;
+
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'level-card' + (done ? ' done' : '') + (maxS === 0 ? ' empty' : '');
+
+      const emoji = document.createElement('span');
+      emoji.className = 'level-emoji';
+      emoji.textContent = lvl.emoji;
+      const title = document.createElement('h3');
+      title.textContent = lvl.title;
+      const desc = document.createElement('p');
+      desc.className = 'level-desc';
+      desc.textContent = lvl.description;
+      card.appendChild(emoji); card.appendChild(title); card.appendChild(desc);
+
+      if (maxS === 0) {
+        const note = document.createElement('p');
+        note.className = 'level-empty-note';
+        note.textContent = 'Próximamente';
+        card.appendChild(note);
+      } else {
+        const score = document.createElement('span');
+        score.className = 'level-score';
+        score.textContent = `⭐ ${got} / ${maxS}` + (done ? ' 🏆' : '');
+        card.appendChild(score);
+        const bar = document.createElement('div');
+        bar.className = 'level-bar';
+        const fill = document.createElement('div');
+        fill.className = 'level-bar-fill';
+        fill.style.width = `${Math.round((got / maxS) * 100)}%`;
+        bar.appendChild(fill);
+        card.appendChild(bar);
+      }
+
+      card.addEventListener('click', () => {
+        AudioEngine.sfx('tap');
+        selectLevel(lvl.id);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  // Detalle de nivel: canciones del nivel + tarjeta con sus modos.
+  function renderLevelView() {
+    updateChip();
+    updateUserChip();
+    const lvl = levelById(currentLevelId) || LEVELS[0];
+    const u = currentUser();
+    const maxS = maxStarsOfLevel(lvl.id);
+    const got = u ? userStarsOfLevel(u, lvl.id) : 0;
+
+    $('#level-title').textContent = `${lvl.emoji} ${lvl.title}`;
+    $('#level-sub').textContent = `${lvl.name} · ${lvl.description}`;
+    $('#level-stars').textContent = `⭐ ${got} / ${maxS}`;
+
+    // selector de canciones del nivel
+    const songs = songsOfLevel(lvl.id);
+    const picker = $('#song-picker');
+    picker.classList.toggle('hidden', songs.length <= 1);
+    picker.innerHTML = '';
+    songs.forEach((s) => {
+      const b = document.createElement('button');
+      b.className = 'song-tab' + (s.id === song.id ? ' on' : '');
+      b.textContent = `${s.emoji} ${s.title}`;
+      const span = document.createElement('span');
+      span.className = 'song-tab-stars';
+      span.textContent = ` ⭐ ${userStarsOfSong(u, s)}/${maxStarsOfSong(s)}`;
+      b.appendChild(span);
+      b.addEventListener('click', () => { AudioEngine.sfx('tap'); selectSong(s.id); });
+      picker.appendChild(b);
+    });
+
+    // tarjeta de la canción activa
     $('#song-title').textContent = `${song.emoji} ${song.title}`;
     $('#song-sub').textContent = [song.composer, song.subtitle].filter(Boolean).join(' · ');
-    const u = currentUser();
+
     const prog = u ? u.progress || {} : {};
-    const picker = $('#song-picker');
-    if (picker) {
-      picker.classList.toggle('hidden', SONGS.length <= 1);
-      picker.innerHTML = '';
-      SONGS.forEach((s) => {
-        const b = document.createElement('button');
-        b.className = 'song-tab' + (s.id === song.id ? ' on' : '');
-        const done = prog[s.id] && prog[s.id].free ? ' ⭐' : '';
-        b.textContent = `${s.emoji} ${s.title}${done}`;
-        b.addEventListener('click', () => { AudioEngine.sfx('tap'); selectSong(s.id); });
-        picker.appendChild(b);
-      });
-    }
     const fill = (mode) => {
       const s = starsOf(mode);
       return s ? '⭐'.repeat(s) : '☆☆☆';
@@ -201,6 +370,11 @@ const App = (() => {
       const s = prog[song.id];
       return mode === 'listen' && s && s.listen ? ' ✅' : '';
     };
+
+    // sólo se muestran los modos posibles para esta canción
+    const modes = availableModes(song);
+    $$('.mode-btn').forEach((b) => b.classList.toggle('hidden', !modes.includes(b.dataset.mode)));
+
     $('#stars-rh').textContent = fill('rh');
     $('#stars-lh').textContent = fill('lh');
     $('#stars-both').textContent = fill('both');
@@ -332,9 +506,9 @@ const App = (() => {
       if (i < stars) { void el.offsetWidth; el.classList.add('pop'); }
     });
     $('#win-stats').textContent = stats;
-    const next = NEXT[currentMode];
+    const next = nextMode(currentMode, song);
     const btn = $('#win-next');
-    if (next) { btn.classList.remove('hidden'); btn.textContent = `Siguiente: ${NEXT_LABEL[currentMode]}`; }
+    if (next) { btn.classList.remove('hidden'); btn.textContent = `Siguiente: ${nextLabel(next)}`; }
     else btn.classList.add('hidden');
 
     $('#win-mode').value = currentMode;
@@ -582,6 +756,7 @@ const App = (() => {
   function bindUI() {
     $('#midi-chip').addEventListener('click', showConnect);
     $('#btn-help').addEventListener('click', showConnect);
+    $('#btn-back-levels').addEventListener('click', backToLevels);
 
     $$('.mode-btn').forEach((b) => b.addEventListener('click', () => {
       AudioEngine.sfx('tap');
@@ -646,9 +821,9 @@ const App = (() => {
       showScreen('home'); renderHome();
     });
     $('#win-next').addEventListener('click', () => {
-      const next = NEXT[currentMode];
+      const next = nextMode(currentMode, song);
       hideOverlay('#win-overlay');
-      startMode(next);
+      if (next) startMode(next); else { showScreen('home'); renderHome(); }
     });
 
     // ajustes

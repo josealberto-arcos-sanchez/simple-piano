@@ -57,6 +57,8 @@ const Users = (() => {
       color: 'rosa',
       createdAt: new Date().toISOString(),
       prefs: {
+        view: 'levels',
+        levelId: null,
         songId: legacySettings && legacySettings.songId ? legacySettings.songId : undefined,
         speed: legacySettings && typeof legacySettings.speed === 'number' ? legacySettings.speed : undefined,
       },
@@ -95,7 +97,7 @@ const Users = (() => {
       name: clean.slice(0, 20),
       color: colorOf(colorId).id,
       createdAt: new Date().toISOString(),
-      prefs: { songId: undefined, speed: undefined },
+      prefs: { view: 'levels', levelId: null, songId: undefined, speed: undefined },
       progress: {},
     };
     state.users.push(user);
@@ -189,6 +191,8 @@ const Users = (() => {
           color: colorOf(inUser.color).id,
           createdAt: inUser.createdAt || new Date().toISOString(),
           prefs: {
+            view: inUser.prefs && inUser.prefs.view === 'level' ? 'level' : 'levels',
+            levelId: inUser.prefs && typeof inUser.prefs.levelId === 'number' ? inUser.prefs.levelId : null,
             songId: inUser.prefs && inUser.prefs.songId,
             speed: inUser.prefs && inUser.prefs.speed,
           },

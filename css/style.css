@@ -141,6 +141,97 @@ body {
 .home-tip { margin-top: 16px; color: #94a3b8; font-size: 14px; text-align: center; }
 .home-footer { width: 100%; text-align: center; padding: 14px; }
 
+/* ── niveles: menú principal y detalle ── */
+.levels-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+}
+.levels-title {
+  margin: 0 0 6px;
+  font-size: clamp(20px, 4.5vw, 30px);
+  letter-spacing: 0.5px;
+}
+.level-msg {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 18px;
+  margin: 0 0 10px;
+  text-align: center;
+}
+.level-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  width: min(640px, 96vw);
+}
+.level-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 16px;
+  color: #f8fafc;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.08s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+.level-card:active { transform: scale(0.97); }
+.level-card .level-emoji { font-size: 30px; line-height: 1; }
+.level-card h3 { margin: 0; font-size: 18px; letter-spacing: 0.3px; }
+.level-card .level-desc { margin: 0; color: #a5b4fc; font-size: 13px; line-height: 1.45; }
+.level-card .level-score { font-weight: 800; font-size: 14px; color: #fde68a; margin-top: 4px; }
+.level-card .level-empty-note { font-style: italic; color: #64748b; font-size: 13px; }
+.level-bar { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.level-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--user-color), var(--user-color-dark));
+  transition: width 0.2s ease;
+}
+.level-card.done { border-color: var(--user-color); box-shadow: 0 0 0 2px var(--user-glow); }
+.level-card.empty { opacity: 0.65; }
+
+.level-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 16px 16px;
+  overflow-y: auto;
+}
+.level-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(560px, 96vw);
+  margin-bottom: 12px;
+}
+.level-info { flex: 1; min-width: 0; }
+.level-info h2 { margin: 0; font-size: clamp(18px, 4vw, 24px); }
+.level-info p { margin: 2px 0 0; color: #a5b4fc; font-size: 13px; line-height: 1.4; }
+.level-stars {
+  font-weight: 800;
+  font-size: 14px;
+  color: #fde68a;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+.song-tab-stars { font-size: 12px; opacity: 0.85; font-weight: 700; }
+
 /* chips y botones redondos */
 .chip {
   border: 1px solid rgba(255, 255, 255, 0.2);
