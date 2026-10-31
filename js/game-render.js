@@ -6,12 +6,16 @@
 import { midiToName } from './songs.js';
 
 const GameRenderer = (canvas, engine) => {
+  // Colores leídos de las variables CSS (única fuente de verdad con css/style.css).
+  const cs = getComputedStyle(document.documentElement);
+  const cssVar = (name, fallback) => (cs.getPropertyValue(name).trim() || fallback);
+
   const HAND = {
-    R: { fill: '#22c55e' },  // mano derecha: verde
-    L: { fill: '#6366f1' },  // mano izquierda: morado
+    R: { fill: cssVar('--color-rh', '#22c55e') },  // mano derecha: verde
+    L: { fill: cssVar('--color-lh', '#6366f1') },  // mano izquierda: morado
   };
-  const GOLD = '#ffd166';
-  const RED = '#ef4444';
+  const GOLD = cssVar('--color-gold', '#ffd166');
+  const RED = cssVar('--color-red', '#ef4444');
   const BLACK_SET = new Set([1, 3, 6, 8, 10]); // midi % 12 → tecla negra
   const HIT_FADE = 0.6;      // s del destello dorado (coincide con el motor)
 
