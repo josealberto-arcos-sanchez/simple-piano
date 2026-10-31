@@ -1,5 +1,6 @@
 // App principal: pantallas, progreso, conexión del teclado y celebración.
 
+import { APP_VERSION } from './version.js';
 import { SONGS, LEVELS, validateSongs } from './songs.js';
 import { Progression } from './progression.js';
 import { AudioEngine } from './audio.js';
@@ -462,6 +463,9 @@ const App = (() => {
 
     // ajustes
     $('#btn-settings').addEventListener('click', () => showOverlay('#settings-overlay'));
+    // versión de la app (fuente única: js/version.js)
+    const verEl = $('#app-version');
+    if (verEl) verEl.textContent = `Simple Piano v${APP_VERSION} · prototipo`;
     $('#settings-close').addEventListener('click', () => hideOverlay('#settings-overlay'));
     $('#set-echo').addEventListener('change', (e) => {
       settings.echo = e.target.checked; saveSettings(); applyEcho();
@@ -489,4 +493,4 @@ export { App };
 
 // Gancho de depuración/pruebas: un único espacio con nombre (intencional) para que
 // la consola y los tests automáticos puedan inspeccionar los módulos.
-window.__debug__ = { App, Game, SONGS, LEVELS, Users, MIDI, Progression, AudioEngine, HomeUI, UsersUI, ConnectUI, DevKeys, validateSongs };
+window.__debug__ = { App, Game, SONGS, LEVELS, Users, MIDI, Progression, AudioEngine, HomeUI, UsersUI, ConnectUI, DevKeys, validateSongs, APP_VERSION };

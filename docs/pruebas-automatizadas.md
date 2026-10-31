@@ -12,20 +12,27 @@ alias de la Microsoft Store, que fallan con *"no se encontró Python"*). Por eso
 - **No** intentes `node --check`, `python -m http.server`, `npx serve`, etc.
 - **Sí** existe un servidor estático en PowerShell puro: **`scripts/serve.ps1`**
   (sin dependencias). Es el único servidor local del proyecto.
+- **`scripts/check-sw.ps1`** (PowerShell puro) verifica la coherencia del Service
+  Worker: que `sw.js` lista todos los ficheros referenciados en `index.html`,
+  los `import` de `js/` y los iconos de `manifest.json`, que `CORE` existe en
+  disco y que el cache usa la misma versión que `js/version.js`. Útil tras
+  añadir ficheros o subir la versión.
 
 ## 2. Levantar el servidor
 
 Desde la shell de OpenCode (que es PowerShell), ejecuta en **background**:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\serve.ps1 -Port 8123
+powershell -ExecutionPolicy Bypass -File scripts\serve.ps1 -Port 8234
 ```
 
-Usa un puerto distinto de `8080` si el `scripts/serve.ps1` ya está ocupado.
-Después abre la app con la herramienta de navegador:
+El puerto de pruebas por defecto es el `8234` (funciona sin permisos especiales;
+evita el `8123`, que Windows suele tener reservado por el sistema). Usa otro
+puerto si el `8234` ya está ocupado. Después abre la app con la herramienta de
+navegador:
 
 ```
-tools.browser.tabs.open({ url: 'http://127.0.0.1:8123/', focus: true })
+tools.browser.tabs.open({ url: 'http://127.0.0.1:8234/', focus: true })
 ```
 
 > El navegador de pruebas **no admite `file://`** (rutas locales) ni URLs con
@@ -34,7 +41,7 @@ tools.browser.tabs.open({ url: 'http://127.0.0.1:8123/', focus: true })
 ### 2.1. Cómo parar el servidor
 
 ```powershell
-Stop-Process -Id (Get-NetTCPConnection -LocalPort 8123 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue
+Stop-Process -Id (Get-NetTCPConnection -LocalPort 8234 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue
 ```
 
 ## 3. Herramientas del navegador disponibles

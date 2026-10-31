@@ -3,7 +3,7 @@
 // (stale-while-revalidate), así los cambios llegan en la siguiente carga.
 // Para cambios de estructura, sube la versión CACHE para limpiar caches viejos.
 
-const CACHE = 'simple-piano-v0.8.0';
+const CACHE = 'simple-piano-v0.9.0';
 const CORE = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const CORE = [
   './js/ui-home.js',
   './js/ui-users.js',
   './js/ui-connect.js',
+  './js/version.js',
   './js/app.js',
   './manifest.json',
   './icons/icon-192.png',

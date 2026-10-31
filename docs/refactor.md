@@ -60,7 +60,11 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
 
 ### 🟠 Prioridad Media (Mantenibilidad, sincronización y rendimiento a medio plazo)
 
-#### 5. Gestión manual de versiones y lista de archivos en el Service Worker (`sw.js`)
+#### 5. ✅ Realizado — Gestión manual de versiones y lista de archivos en el Service Worker (`sw.js`)
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * Creado **`js/version.js`** como fuente única de `APP_VERSION` (v0.9.0). La UI de Ajustes la pinta dinámicamente (`#app-version`) desde `js/app.js`; se eliminó la versión hardcoded `v0.4.0` de `index.html` y `README.md` pasó a v0.9.0.
+  * **`scripts/check-sw.ps1`**: comprobación automática en PowerShell puro (sin Node/Python) que verifica que (1) todos los ficheros referenciados en `index.html` (`src`/`href`), (2) todos los `import` de módulos de `js/`, (3) los iconos de `manifest.json` y (4) cada entrada de `CORE` existen en disco y están listadas en `sw.js` (incluidos `./` e `index.html`); además comprueba que la versión del cache de `sw.js` coincide con `APP_VERSION`. Devuelve código de salida 0/1 y lista los problemas.
 * **Problema:** La versión está duplicada y desincronizada: `index.html:193` muestra `v0.4.0`, `README.md:7` dice `v0.1`, y `sw.js:6` tiene `simple-piano-v0.5.0`. Además, `CORE` en `sw.js` requiere listar a mano cada fichero del proyecto.
 * **Impacto:** Es el fallo clásico en PWAs sin build: se añade un módulo JS o un icono nuevo, se olvida incluirlo en `CORE` o subir `CACHE`, y la tablet de la niña sigue sirviendo código viejo o falla cuando no hay internet.
 * **Mejora:** Centralizar la constante `APP_VERSION` (o leerla para pintarla en la UI de Ajustes) y añadir en un pequeño script de PowerShell (o test automático) una comprobación que verifique que todos los ficheros referenciados en `index.html` están en `sw.js`.

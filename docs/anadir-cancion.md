@@ -89,4 +89,4 @@ Al arrancar la app en localhost (o con `?dev=1`), `validateSongs()` comprueba to
 
 ## 6. Actualizar la caché offline (si está instalada como PWA)
 
-Si ya tienes la app instalada en el tablet, sube el número de versión de `CACHE` en `sw.js` (por ejemplo, de `'simple-piano-v0.8.0'` a `'simple-piano-v0.8.1'`) para forzar que el navegador descargue el nuevo `js/songs.js`. Si aun así no se actualiza, en ⚙️ Ajustes → 🔄 Buscar actualización borra la caché y recarga la app.
+Si ya tienes la app instalada en el tablet, sube el número de versión: cambia `APP_VERSION` en `js/version.js` (fuente única) y `CACHE` en `sw.js` (p. ej. de `'simple-piano-v0.9.0'` a `'simple-piano-v0.9.1'`) para forzar que el navegador descargue el nuevo `js/songs.js`. Después ejecuta `scripts/check-sw.ps1` para verificar que el cache incluye todos los ficheros referenciados y la versión correcta. Si aun así no se actualiza, en ⚙️ Ajustes → 🔄 Buscar actualización borra la caché y recarga la app.
