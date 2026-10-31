@@ -30,6 +30,9 @@ SimplyPiano en casa, pero hecho a la medida de la niña y sin suscripciones:
 ## Arquitectura
 
 - HTML/CSS/JS **vanilla**, sin build ni dependencias → manutenible y publicable en GitHub Pages.
+- Perfiles de usuario en `js/users.js`: el progreso, la canción y la velocidad se guardan
+  por jugador en `localStorage` (`simple-piano-users-v1`), sin contraseñas, con cambio
+  instantáneo entre cuentas y exportación/importación (archivo JSON o código `SP1:...`).
 - Canción = array de `{nota MIDI, pulso, duración, mano, dedo}` → añadir canciones es trivial.
 - Canvas para las notas que caen (60 fps suaves incluso en tablets modestas).
 - Web Audio sintetizado (sin samples): suficiente para el modo Escuchar y el eco.

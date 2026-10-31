@@ -18,6 +18,7 @@
     <header class="home-header">
       <h1>🎹 Simple Piano</h1>
       <div class="home-actions">
+        <button id="user-chip" class="chip user-chip" title="Cambiar de jugador">👤</button>
         <button id="midi-chip" class="chip chip-off" title="Estado del teclado">…</button>
         <button id="btn-settings" class="round-btn" title="Ajustes">⚙️</button>
       </div>
@@ -61,6 +62,7 @@
         <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
         <div id="game-text" class="game-text">¡Preparada!</div>
       </div>
+      <span id="game-user" class="game-user" title="Jugador"></span>
       <button id="btn-speed" class="round-btn" title="Velocidad">😊</button>
       <button id="btn-restart" class="round-btn restart" title="Volver a empezar">🔁</button>
       <button id="btn-fs" class="round-btn" title="Pantalla completa">⛶</button>
@@ -114,6 +116,38 @@
     </div>
   </div>
 
+  <!-- ═══════════ OVERLAY: JUGADORES ═══════════ -->
+  <div id="user-overlay" class="overlay hidden">
+    <div class="panel">
+      <button id="user-close" class="round-btn close">✕</button>
+      <h2>🧒 Jugadores</h2>
+
+      <div id="user-list" class="user-list"></div>
+
+      <form id="user-form" class="user-form hidden" action="#">
+        <h3 id="user-form-title">➕ Nuevo jugador</h3>
+        <label class="user-name-label" for="user-input">¿Cómo te llamas?</label>
+        <input id="user-input" class="user-input" type="text" maxlength="20" autocomplete="off" placeholder="Tu nombre">
+        <p class="user-color-label">Elige tu color</p>
+        <div id="user-color-picker" class="color-picker"></div>
+        <button type="submit" id="user-save" class="big-btn">¡Listo!</button>
+      </form>
+
+      <button id="user-add" class="big-btn alt">➕ Nuevo jugador</button>
+
+      <div id="user-transfer" class="user-transfer">
+        <button id="user-export" class="link-btn">📥 Guardar copia de todos (archivo)</button>
+        <button id="user-copy" class="link-btn">📋 Copiar código de todos</button>
+        <button id="user-export-active" class="link-btn">📤 Guardar copia de este jugador (archivo)</button>
+        <button id="user-import" class="link-btn">📤 Cargar copia (archivo)</button>
+        <input type="file" id="user-import-file" accept=".json,application/json" class="hidden">
+        <button id="user-paste" class="link-btn">📥 Pegar código</button>
+      </div>
+
+      <p id="user-msg" class="user-msg"></p>
+    </div>
+  </div>
+
   <!-- ═══════════ OVERLAY: AJUSTES ═══════════ -->
   <div id="settings-overlay" class="overlay hidden">
     <div class="panel">
@@ -124,7 +158,7 @@
         <span>🔊 Eco en la app (si el teclado no suena por sí solo)</span>
       </label>
       <button id="set-update" class="link-btn">🔄 Buscar actualización</button>
-      <button id="set-reset" class="link-btn danger">🗑️ Borrar estrellas y progreso</button>
+      <button id="set-reset" class="link-btn danger">🗑️ Borrar mi progreso</button>
       <p class="version">Simple Piano v0.1 · prototipo</p>
     </div>
   </div>
@@ -135,6 +169,7 @@
   <script src="js/audio.js"></script>
   <script src="js/midi.js"></script>
   <script src="js/keyboard-dev.js"></script>
+  <script src="js/users.js"></script>
   <script src="js/game.js"></script>
   <script src="js/app.js"></script>
 </body>

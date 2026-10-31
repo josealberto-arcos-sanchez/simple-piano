@@ -27,29 +27,58 @@ const App = (() => {
   let wakeLock = null;
   let echoVoices = new Map();
 
-  // ── progreso (localStorage) ──
-  const PKEY = 'simple-piano-progress-v1';
+  // ── perfiles de usuario (js/users.js) ──
   const SKEY = 'simple-piano-settings-v1';
-  let progress = {};
-  let settings = { echo: false, speed: 1, songId: SONGS[0].id };
-  try { progress = JSON.parse(localStorage.getItem(PKEY)) || {}; } catch (e) { progress = {}; }
+  let activeUser = null;
+  let selectedColor = Users.colors()[0].id;
+  let forcedNew = false;
+  let settings = { echo: false };
   try { settings = Object.assign(settings, JSON.parse(localStorage.getItem(SKEY)) || {}); } catch (e) { /* ignore */ }
-  if (!SPEEDS.some((s) => s.v === settings.speed)) settings.speed = 1;   // valor desconocido → normal
-  song = SONGS.find((s) => s.id === settings.songId) || SONGS[0];
 
-  function saveProgress() { try { localStorage.setItem(PKEY, JSON.stringify(progress)); } catch (e) { /* ignore */ } }
-  function saveSettings() { try { localStorage.setItem(SKEY, JSON.stringify(settings)); } catch (e) { /* ignore */ } }
+  function saveSettings() { try { localStorage.setItem(SKEY, JSON.stringify({ echo: settings.echo })); } catch (e) { /* ignore */ } }
+
+  function currentUser() { return (activeUser = Users.active()); }
+
+  function syncUserState() {
+    activeUser = Users.active();
+    if (!activeUser) return;
+    Users.applyTheme(activeUser);
+    updateUserChip();
+    updateGameUser();
+    if (typeof activeUser.prefs.speed !== 'number' || !SPEEDS.some((s) => s.v === activeUser.prefs.speed)) {
+      activeUser.prefs.speed = 1;
+    }
+    song = SONGS.find((s) => s.id === activeUser.prefs.songId) || SONGS[0];
+    activeUser.prefs.songId = song.id;
+    Users.persist();
+    updateSpeedUI();
+  }
+
+  function starTotal(u) {
+    let t = 0;
+    const prog = u.progress || {};
+    for (const sid of Object.keys(prog)) {
+      for (const m of Object.keys(prog[sid])) {
+        if (prog[sid][m] && prog[sid][m].stars) t += prog[sid][m].stars;
+      }
+    }
+    return t;
+  }
 
   function starsOf(mode) {
-    const s = progress[song.id] || {};
+    const u = currentUser();
+    if (!u) return 0;
+    const s = u.progress[song.id] || {};
     return s[mode] ? s[mode].stars : 0;
   }
   function setStars(mode, stars) {
-    if (!progress[song.id]) progress[song.id] = {};
-    const prev = progress[song.id][mode];
+    const u = currentUser();
+    if (!u) return;
+    if (!u.progress[song.id]) u.progress[song.id] = {};
+    const prev = u.progress[song.id][mode];
     if (!prev || stars > prev.stars) {
-      progress[song.id][mode] = { stars, date: new Date().toISOString() };
-      saveProgress();
+      u.progress[song.id][mode] = { stars, date: new Date().toISOString() };
+      Users.persist();
     }
   }
 
@@ -63,18 +92,22 @@ const App = (() => {
   }
 
   // ── velocidad de la canción (🐢 lenta · 😊 normal · 🐇 rápida) ──
-  function speedPreset() { return SPEEDS.find((s) => s.v === settings.speed) || SPEEDS[1]; }
+  function activeSpeed() {
+    const u = currentUser();
+    return u && typeof u.prefs.speed === 'number' ? u.prefs.speed : 1;
+  }
+  function speedPreset() { return SPEEDS.find((s) => s.v === activeSpeed()) || SPEEDS[1]; }
 
   function updateSpeedUI() {
     const p = speedPreset();
-    $$('.speed-btn').forEach((b) => b.classList.toggle('on', +b.dataset.speed === settings.speed));
+    $$('.speed-btn').forEach((b) => b.classList.toggle('on', +b.dataset.speed === activeSpeed()));
     const btn = $('#btn-speed');
     if (btn) { btn.textContent = p.icon; btn.title = `Velocidad: ${p.label}`; }
   }
 
   function applySpeed(v) {
-    settings.speed = v;
-    saveSettings();
+    const u = currentUser();
+    if (u) { u.prefs.speed = v; Users.persist(); }
     Game.setSpeed(v);
     updateSpeedUI();
     if (!$('#screen-game').classList.contains('hidden')) {
@@ -86,7 +119,6 @@ const App = (() => {
   // ── ciclo de vida ──
   function init() {
     applyEcho();
-    updateSpeedUI();
     AudioEngine.unlockOnGesture();
 
     MIDI.init();
@@ -94,6 +126,13 @@ const App = (() => {
 
     bindUI();
     registerSW();
+
+    syncUserState();
+    if (!activeUser) {
+      // primer arranque: hay que crear un jugador antes de jugar
+      openUserOverlay({ forceNew: true });
+      return;
+    }
     renderHome();
   }
 
@@ -129,15 +168,18 @@ const App = (() => {
     const found = SONGS.find((s) => s.id === id);
     if (!found) return;
     song = found;
-    settings.songId = song.id;
-    saveSettings();
+    const u = currentUser();
+    if (u) { u.prefs.songId = song.id; Users.persist(); }
     renderHome();
   }
 
   function renderHome() {
     updateChip();
+    updateUserChip();
     $('#song-title').textContent = `${song.emoji} ${song.title}`;
     $('#song-sub').textContent = [song.composer, song.subtitle].filter(Boolean).join(' · ');
+    const u = currentUser();
+    const prog = u ? u.progress || {} : {};
     const picker = $('#song-picker');
     if (picker) {
       picker.classList.toggle('hidden', SONGS.length <= 1);
@@ -145,7 +187,7 @@ const App = (() => {
       SONGS.forEach((s) => {
         const b = document.createElement('button');
         b.className = 'song-tab' + (s.id === song.id ? ' on' : '');
-        const done = progress[s.id] && progress[s.id].free ? ' ⭐' : '';
+        const done = prog[s.id] && prog[s.id].free ? ' ⭐' : '';
         b.textContent = `${s.emoji} ${s.title}${done}`;
         b.addEventListener('click', () => { AudioEngine.sfx('tap'); selectSong(s.id); });
         picker.appendChild(b);
@@ -156,7 +198,7 @@ const App = (() => {
       return s ? '⭐'.repeat(s) : '☆☆☆';
     };
     const q = (mode) => {
-      const s = progress[song.id];
+      const s = prog[song.id];
       return mode === 'listen' && s && s.listen ? ' ✅' : '';
     };
     $('#stars-rh').textContent = fill('rh');
@@ -178,6 +220,34 @@ const App = (() => {
     chip.className = `chip ${cls}`;
   }
 
+  function updateUserChip() {
+    const chip = $('#user-chip');
+    if (!activeUser) {
+      chip.textContent = '👤';
+      chip.className = 'chip user-chip';
+      return;
+    }
+    const c = Users.colorOf(activeUser.color);
+    chip.textContent = '';
+    const dot = document.createElement('span');
+    dot.className = 'chip-dot';
+    dot.style.background = c.color;
+    chip.appendChild(dot);
+    chip.appendChild(document.createTextNode(` ${activeUser.name} ▾`));
+    chip.className = 'chip user-chip';
+  }
+
+  function updateGameUser() {
+    const el = $('#game-user');
+    if (!el) return;
+    if (!activeUser) { el.textContent = ''; return; }
+    const c = Users.colorOf(activeUser.color);
+    el.textContent = activeUser.name;
+    el.style.borderColor = c.color;
+    el.style.color = c.color;
+    el.title = activeUser.name;
+  }
+
   // ── empezar un modo ──
   function startMode(mode) {
     currentMode = mode;
@@ -192,6 +262,7 @@ const App = (() => {
   function launchGame() {
     const m = MODES[currentMode];
     showScreen('game');
+    updateGameUser();
     $('#game-title').textContent = `${song.emoji} ${song.title} · ${m.title}`;
     $('#bar-fill').style.width = '0%';
     $('#game-text').textContent = '¡Preparada!';
@@ -207,7 +278,7 @@ const App = (() => {
           : `${head} · Nota ${idx}/${total}`;
       },
       finish: onFinish,
-    }, settings.speed);
+    }, activeSpeed());
     showHint(m.hint);
   }
 
@@ -223,8 +294,12 @@ const App = (() => {
   function onFinish(res) {
     releaseWakeLock();
     if (res.listen) {
-      const s = progress[song.id] = progress[song.id] || {};
-      s.listen = true; saveProgress();
+      const u = currentUser();
+      if (u) {
+        u.progress[song.id] = u.progress[song.id] || {};
+        u.progress[song.id].listen = true;
+        Users.persist();
+      }
       showScreen('home'); renderHome();
       AudioEngine.sfx('win');
       return;
@@ -248,7 +323,9 @@ const App = (() => {
     setStars(currentMode, stars);
     AudioEngine.sfx('win');
 
-    $('#win-title').textContent = ['¡LO CONSEGUISTE!', '¡MUY BIEN!', '¡GENIAL!'][Math.min(2, Math.floor(Math.random() * 3))];
+    const praise = ['¡LO CONSEGUISTE!', '¡MUY BIEN!', '¡GENIAL!'][Math.min(2, Math.floor(Math.random() * 3))];
+    const nm = activeUser ? activeUser.name : '';
+    $('#win-title').textContent = nm ? praise.replace('!', `, ${nm}!`) : praise;
     $$('#win-stars .star').forEach((el, i) => {
       el.classList.toggle('on', i < stars);
       el.classList.remove('pop');
@@ -369,6 +446,139 @@ const App = (() => {
   function showOverlay(sel) { $(sel).classList.remove('hidden'); }
   function hideOverlay(sel) { $(sel).classList.add('hidden'); }
 
+  // ── overlay de jugadores ──
+  function flashMsg(text) {
+    const el = $('#user-msg');
+    el.textContent = text;
+    clearTimeout(flashMsg.timer);
+    flashMsg.timer = setTimeout(() => { el.textContent = ''; }, 4000);
+  }
+
+  function countStars(u) { return starTotal(u); }
+
+  function renderUserList() {
+    const list = $('#user-list');
+    list.innerHTML = '';
+    const eaBtn = $('#user-export-active');
+    if (eaBtn) {
+      eaBtn.textContent = activeUser
+        ? `📤 Guardar copia de ${activeUser.name} (archivo)`
+        : '📤 Guardar copia de este jugador (archivo)';
+    }
+    const users = Users.all();
+    if (users.length === 0) {
+      list.innerHTML = '<p class="user-empty">Todavía no hay jugadores.</p>';
+      return;
+    }
+    const selId = activeUser ? activeUser.id : null;
+    users.forEach((u) => {
+      const c = Users.colorOf(u.color);
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'user-card' + (u.id === selId ? ' on' : '');
+
+      const avatar = document.createElement('span');
+      avatar.className = 'user-avatar';
+      avatar.style.background = c.color;
+      avatar.textContent = u.name.charAt(0).toUpperCase();
+
+      const info = document.createElement('span');
+      info.className = 'user-info';
+      const nm = document.createElement('span'); nm.className = 'user-name'; nm.textContent = u.name;
+      const st = document.createElement('span'); st.className = 'user-stars'; st.textContent = `⭐ ${countStars(u)}`;
+      info.appendChild(nm); info.appendChild(st);
+
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'mini-btn';
+      edit.textContent = '📝';
+      edit.title = 'Editar';
+      edit.addEventListener('click', (ev) => { ev.stopPropagation(); showUserForm(u); });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'mini-btn danger';
+      del.textContent = '🗑️';
+      del.title = 'Borrar';
+      del.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (confirm(`¿Borrar a ${u.name}? Su progreso se perderá.`)) {
+          Users.deleteUser(u.id);
+          syncUserState();
+          renderUserList();
+        }
+      });
+
+      card.addEventListener('click', () => {
+        Users.selectUser(u.id);
+        syncUserState();
+        hideUserForm();
+        renderHome();
+        forcedNew = false;
+        hideOverlay('#user-overlay');
+      });
+
+      card.appendChild(avatar); card.appendChild(info); card.appendChild(edit); card.appendChild(del);
+      list.appendChild(card);
+    });
+  }
+
+  function showUserForm(u) {
+    const form = $('#user-form');
+    form.classList.remove('hidden');
+    $('#user-add').classList.add('hidden');
+    $('#user-form-title').textContent = u ? `Editar a ${u.name}` : '➕ Nuevo jugador';
+    $('#user-input').value = u ? u.name : '';
+    selectedColor = u ? u.color : Users.colors()[0].id;
+    const picker = $('#user-color-picker');
+    picker.innerHTML = '';
+    Users.colors().forEach((c) => {
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.className = 'color-swatch' + (c.id === selectedColor ? ' on' : '');
+      sw.style.background = c.color;
+      sw.addEventListener('click', () => {
+        selectedColor = c.id;
+        $$('.color-swatch').forEach((x) => x.classList.toggle('on', x === sw));
+      });
+      picker.appendChild(sw);
+    });
+    $('#user-save').dataset.mode = u ? u.id : 'new';
+    $('#user-input').focus();
+  }
+
+  function hideUserForm() {
+    $('#user-form').classList.add('hidden');
+    $('#user-add').classList.remove('hidden');
+    $('#user-input').value = '';
+  }
+
+  function openUserOverlay(opts) {
+    opts = opts || {};
+    forcedNew = !!opts.forceNew;
+    renderUserList();
+    if (forcedNew) {
+      $('#user-close').classList.add('hidden');
+      $('#user-transfer').classList.add('hidden');
+      showUserForm(null);
+    } else {
+      $('#user-close').classList.remove('hidden');
+      $('#user-transfer').classList.remove('hidden');
+      hideUserForm();
+    }
+    showOverlay('#user-overlay');
+  }
+
+  function afterImportOrSelect() {
+    syncUserState();
+    renderUserList();
+    renderHome();
+    if (forcedNew && Users.active()) {
+      forcedNew = false;
+      hideOverlay('#user-overlay');
+    }
+  }
+
   function bindUI() {
     $('#midi-chip').addEventListener('click', showConnect);
     $('#btn-help').addEventListener('click', showConnect);
@@ -400,7 +610,7 @@ const App = (() => {
     }));
     $('#btn-speed').addEventListener('click', () => {
       AudioEngine.sfx('tap');
-      const i = SPEEDS.findIndex((s) => s.v === settings.speed);
+      const i = SPEEDS.findIndex((s) => s.v === activeSpeed());
       applySpeed(SPEEDS[(i + 1) % SPEEDS.length].v);
     });
     // Volver a empezar la canción desde el principio (por si se equivoca)
@@ -449,10 +659,111 @@ const App = (() => {
     });
     $('#set-update').addEventListener('click', forceUpdate);
     $('#set-reset').addEventListener('click', () => {
-      if (confirm('¿Borrar estrellas y progreso?')) {
-        progress = {}; saveProgress(); renderHome();
+      const u = currentUser();
+      const who = u ? ` de ${u.name}` : '';
+      if (confirm(`¿Borrar el progreso${who}?`)) {
+        if (u) { u.progress = {}; Users.persist(); }
+        renderHome();
         hideOverlay('#settings-overlay');
       }
+    });
+
+    // overlay de jugadores
+    $('#user-chip').addEventListener('click', () => openUserOverlay());
+    $('#user-close').addEventListener('click', () => {
+      forcedNew = false;
+      hideOverlay('#user-overlay');
+    });
+    $('#user-add').addEventListener('click', () => showUserForm(null));
+
+    $('#user-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('#user-input').value.trim();
+      if (!name) { flashMsg('Escribe un nombre antes de continuar.'); return; }
+      const mode = $('#user-save').dataset.mode;
+      let created = false;
+      if (mode === 'new') {
+        created = !!Users.createUser(name, selectedColor);
+        if (created) flashMsg('¡Jugador creado! 🎉');
+      } else {
+        Users.updateUser(mode, { name, color: selectedColor });
+        flashMsg('Jugador actualizado.');
+      }
+      hideUserForm();
+      syncUserState();
+      renderUserList();
+      renderHome();
+      if (forcedNew && created) {
+        forcedNew = false;
+        hideOverlay('#user-overlay');
+      }
+    });
+
+    $('#user-export').addEventListener('click', () => {
+      const data = Users.exportAll();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `simple-piano-usuarios-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+      flashMsg('Fichero descargado ✅');
+    });
+
+    $('#user-export-active').addEventListener('click', () => {
+      const u = Users.active();
+      if (!u) { flashMsg('No hay ningún jugador activo.'); return; }
+      const data = Users.exportActive();
+      if (!data) { flashMsg('No se pudo exportar el jugador.'); return; }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const slug = u.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'jugador';
+      a.download = `simple-piano-${slug}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+      flashMsg(`Fichero de ${u.name} descargado ✅`);
+    });
+
+    $('#user-copy').addEventListener('click', async () => {
+      const code = Users.encodeObj(Users.exportAll());
+      if (!code) { flashMsg('No se pudo generar el código.'); return; }
+      try {
+        await navigator.clipboard.writeText(code);
+        flashMsg('Código copiado ✔ Pégalo en el otro dispositivo.');
+      } catch (e) {
+        prompt('Copia este texto manualmente:', code);
+      }
+    });
+
+    $('#user-paste').addEventListener('click', () => {
+      const code = prompt('Pega aquí el código de usuarios (empieza por SP1:):');
+      if (!code) return;
+      const obj = Users.decodeStr(code);
+      if (!obj) { flashMsg('El código no es válido ❌'); return; }
+      const n = Users.importData(obj);
+      afterImportOrSelect();
+      flashMsg(n > 0 ? `Añadidos ${n} jugador(es) ✅` : 'Progreso fusionado ✅');
+    });
+
+    $('#user-import').addEventListener('click', () => $('#user-import-file').click());
+    $('#user-import-file').addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const n = Users.importData(JSON.parse(reader.result));
+          afterImportOrSelect();
+          flashMsg(n > 0 ? `Añadidos ${n} jugador(es) ✅` : 'Progreso fusionado ✅');
+        } catch (err) {
+          flashMsg('El fichero no es válido ❌');
+        }
+      };
+      reader.readAsText(f);
+      e.target.value = '';
     });
   }
 
