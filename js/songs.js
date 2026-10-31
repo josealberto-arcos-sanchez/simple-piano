@@ -75,8 +75,15 @@ function parseNoteToken(tok) {
     return { jump: Number.isFinite(beat) && beat >= 0 ? beat : 0 };
   }
   if (t[0] === '&') {
-    const d = parseFloat(t.slice(1));
-    return { rest: Number.isFinite(d) && d > 0 ? d : 1 };
+    // '&' o '&:duración' (p. ej. '&:1', '&:0.5', '&:4').
+    // El separador es ':' (igual que en las notas); si falta o es inválido, 1 pulso.
+    let d = 1;
+    const c = t.indexOf(':');
+    if (c >= 0) {
+      const v = parseFloat(t.slice(c + 1));
+      if (Number.isFinite(v) && v > 0) d = v;
+    }
+    return { rest: d };
   }
   const i = t.indexOf(':');
   const name = (i >= 0 ? t.slice(0, i) : t).trim();
