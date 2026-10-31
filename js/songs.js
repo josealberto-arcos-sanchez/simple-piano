@@ -390,10 +390,10 @@ const RONDA_SOL = {
 };
 
 // ── Preguntas y respuestas (original) · Do mayor · 4/4 · 8 compases ──
-// Nivel 4: diálogo con las dos manos. La mano derecha hace una pregunta (frase
-// melódica) y la mano izquierda le responde repitiéndola en el registro grave.
-// Ninguna mano salta de su posición fija (DO central / DO grave). Es el primer
-// contacto con tocar "por turnos": las manos hacen de equipo.
+// Nivel 4: diálogo entre las dos manos. En los compases 1–6 la mano derecha
+// lanza tres preguntas distintas y la izquierda le responde en el registro
+// grave; en los compases 7–8 se unen las dos manos para cerrar la canción en
+// equipo. Ninguna mano se mueve de su posición fija (DO central / DO grave).
 const PREGUNTAS_RESPUESTAS = {
   id: 'preguntas-respuestas',
   title: 'Preguntas y respuestas',
@@ -408,40 +408,46 @@ const PREGUNTAS_RESPUESTAS = {
   whiteTo: 72,             // DO agudo → 15 teclas blancas
   notes: {
     R: [
-      // compases 1–2: la derecha pregunta
+      // compás 1: primera pregunta (arpegio ascendente, queda abierta en SOL)
+      'C4:1/1', 'E4:1/3', 'G4:2/5',
+      // compás 2: escucha la respuesta de la izquierda
+      '&:4',
+      // compás 3: segunda pregunta (sube paso a paso)
+      'D4:1/2', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      // compás 4: escucha la respuesta
+      '&:4',
+      // compás 5: tercera pregunta (impulso desde DO hasta SOL)
       'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
-      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
-      // compases 3–4: escucha la respuesta (silencio)
-      '&:1', '&:1', '&:1', '&:1',
-      '&:1', '&:1', '&:1', '&:1',
-      // compases 5–6: vuelve a preguntar
-      'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
-      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
-      // compases 7–8: silencio final
-      '&:1', '&:1', '&:1', '&:1',
-      '&:1', '&:1', '&:1', '&:1',
+      // compás 6: escucha la respuesta
+      '&:4',
+      // compases 7–8: las dos manos se unen para el final
+      'G4:1/5', 'E4:1/3', 'F4:1/4', 'D4:1/2',
+      'C4:4/1',
     ],
     L: [
-      // compases 1–2: espera a que pregunte la derecha
-      '&:1', '&:1', '&:1', '&:1',
-      '&:1', '&:1', '&:1', '&:1',
-      // compases 3–4: la izquierda responde (eco grave)
-      'C3:1/5', 'D3:1/4', 'E3:1/3', 'G3:1/1',
-      'E3:1/3', 'D3:1/4', 'C3:1/5', '&:1',
-      // compases 5–6: escucha de nuevo
-      '&:1', '&:1', '&:1', '&:1',
-      '&:1', '&:1', '&:1', '&:1',
-      // compases 7–8: responde por última vez
-      'C3:1/5', 'D3:1/4', 'E3:1/3', 'G3:1/1',
-      'E3:1/3', 'D3:1/4', 'C3:2/5',
+      // compás 1: espera la primera pregunta
+      '&:4',
+      // compás 2: primera respuesta (arpegio en espejo hacia DO)
+      'G3:1/1', 'E3:1/3', 'C3:2/5',
+      // compás 3: escucha la segunda pregunta
+      '&:4',
+      // compás 4: segunda respuesta (reposa en RE, semicadencia)
+      'F3:1/2', 'E3:1/3', 'D3:2/4',
+      // compás 5: escucha la tercera pregunta
+      '&:4',
+      // compás 6: tercera respuesta (baja suavemente a MI y prepara el final)
+      'G3:1/1', 'F3:1/2', 'E3:2/3',
+      // compases 7–8: acompaña a la derecha en el cierre conjunto
+      'C3:2/5', 'G3:2/1',
+      'C3:4/5',
     ],
   },
 };
 
 // ── Vals de las nubes (original) · Do mayor · 3/4 · 8 compases ──
-// Nivel 4: primer vals. Mano derecha: melodía en negras. Mano izquierda:
-// acompañamiento de acordes de dos notas (fundamental + quinta) sostenidos un
-// compás entero, para introducir el ritmo de 3/4 y los acordes sencillos.
+// Nivel 4: primer vals. Mano derecha: melodía suave en 3/4. Mano izquierda:
+// acompañamiento de acordes de dos notas sostenidos un compás entero (I–V–I y
+// I–IV–V–I), alineados con la armonía de cada compás.
 const VALS_DE_LAS_NUBES = {
   id: 'vals-de-las-nubes',
   title: 'Vals de las nubes',
@@ -456,23 +462,25 @@ const VALS_DE_LAS_NUBES = {
   whiteTo: 72,             // DO agudo → 15 teclas blancas
   notes: {
     R: [
+      // compases 1–4: primera frase (I – I – V – I)
       'C4:1/1', 'D4:1/2', 'E4:1/3',
       'G4:1/5', 'F4:1/4', 'E4:1/3',
       'D4:1/2', 'E4:1/3', 'D4:1/2',
       'C4:2/1', 'D4:1/2',
+      // compases 5–8: segunda frase (I – IV – V – I)
       'E4:1/3', 'F4:1/4', 'G4:1/5',
-      'E4:1/3', 'D4:1/2', 'C4:1/1',
+      'F4:1/4', 'E4:1/3', 'C4:1/1',
       'D4:2/2', 'E4:1/3',
       'C4:3/1',
     ],
     L: [
       ['C3:3/5', 'G3:3/1'],
+      ['C3:3/5', 'G3:3/1'],
       ['G3:3/1', 'D3:3/4'],
+      ['C3:3/5', 'G3:3/1'],
       ['C3:3/5', 'G3:3/1'],
       ['F3:3/2', 'C3:3/5'],
-      ['C3:3/5', 'G3:3/1'],
       ['G3:3/1', 'D3:3/4'],
-      ['C3:3/5', 'G3:3/1'],
       ['C3:3/5', 'G3:3/1'],
     ],
   },
