@@ -469,19 +469,30 @@ body {
 .user-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   width: 100%;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  padding: 10px 12px;
-  cursor: pointer;
-  text-align: left;
-  color: #f8fafc;
+  padding: 8px 10px;
   transition: transform 0.08s ease, filter 0.15s ease;
 }
 .user-card.on { border-color: var(--user-color); box-shadow: 0 0 0 2px var(--user-glow); }
-.user-card:active { transform: scale(0.98); }
+.user-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  color: #f8fafc;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px;
+}
+.user-main:active { transform: scale(0.98); }
 .user-avatar {
   width: 44px; height: 44px;
   border-radius: 50%;

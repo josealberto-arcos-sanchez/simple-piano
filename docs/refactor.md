@@ -109,11 +109,18 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
 
 ### 🟢 Prioridad Baja (Calidad de código, accesibilidad y tests)
 
-#### 9. Creación imperativa y repetitiva de DOM en `js/app.js`
-* **Problema:** Funciones como `renderLevels()`, `renderLevelView()` y `renderUserList()` construyen tarjetas HTML mediante largas secuencias de `document.createElement`, `.className = ...`, `.appendChild(...)` (líneas 299–336, 361–393, 696–742). Además, las tarjetas de usuario meten `<button class="mini-btn">` **dentro** de otro `<button class="user-card">` (`js/app.js:696-741`), lo cual es HTML inválido según el estándar y causa problemas en lectores de pantalla y algunos navegadores táctiles.
+#### 9. ✅ Realizado — Creación imperativa y repetitiva de DOM en `js/app.js`
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * Creado **`js/dom.js`** con el helper declarativo `el(tag, attrs, children)` (seguro frente a XSS: siempre usa `textContent`, nunca `innerHTML` con datos). Acepta `className`, `text`, `style` (objeto), `dataset`, `on` (mapa de eventos) y atributos arbitrarios; los hijos se achatan y pueden ser cadenas/números/nodos.
+  * `js/ui-home.js`: `renderLevels()` y `renderLevelView()` ahora usan `el()` en lugar de las secuencias de `document.createElement`/`appendChild` (las tarjetas de niveles y canciones quedan declarativas).
+  * `js/ui-users.js`: `renderList()` reconstruye la tarjeta de jugador con `el()` y **elimina el HTML inválido**: `.user-card` pasa de `<button>` a un `<div>` contenedor con un `<button class="user-main">` (avatar + nombre + estrellas) y botones hermanos `.mini-btn` (editar/borrar). También `showForm()` usa `el()` para los swatches de color.
+  * Actualizado **`css/style.css`**: `.user-card` es ahora un contenedor flex; se añadió `.user-main` (botón de selección que ocupa el espacio flexible, sin estilos de botón por defecto). Se sustituyó `.user-card:active` por `.user-main:active`.
+  * Añadido **`js/dom.js`** a `CORE` de `sw.js`. Verificado con `scripts/check-sw.ps1` (OK) y en navegador: menú de 4 niveles, listado de canciones y overlay de jugadores renderizados sin errores y sin botones anidados; consola limpia.
+* **Problema original:** Funciones como `renderLevels()`, `renderLevelView()` y `renderUserList()` construían tarjetas HTML mediante largas secuencias de `document.createElement`, `.className = ...`, `.appendChild(...)`. Además, las tarjetas de usuario metían `<button class="mini-btn">` **dentro** de otro `<button class="user-card">`, HTML inválido según el estándar con problemas en lectores de pantalla y navegadores táctiles.
 * **Impacto:** Código verboso, difícil de leer y modificar visualmente, y con HTML inválido en las tarjetas de usuario.
 * **Mejora:**
-  * Usar elementos `<template>` en `index.html` o un pequeño helper declarativo `el(tag, attrs, children)` para reducir a la mitad el código de renderizado manteniéndolo seguro frente a XSS.
+  * Usar un pequeño helper declarativo `el(tag, attrs, children)` para reducir a la mitad el código de renderizado manteniéndolo seguro frente a XSS.
   * Cambiar `.user-card` a un `<div>` contenedor con un botón principal de selección y botones hermanos para editar/borrar, evitando anidar `<button>` dentro de `<button>`.
 
 #### 10. Pruebas automatizadas dependientes exclusivamente de la UI del navegador

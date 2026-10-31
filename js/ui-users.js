@@ -3,6 +3,7 @@
 
 import { Users } from './users.js';
 import { Progression } from './progression.js';
+import { el } from './dom.js';
 
 const UsersUI = (() => {
   const $ = (s) => document.querySelector(s);
@@ -43,52 +44,49 @@ const UsersUI = (() => {
     const selId = ctx.activeUser ? ctx.activeUser.id : null;
     users.forEach((u) => {
       const c = Users.colorOf(u.color);
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'user-card' + (u.id === selId ? ' on' : '');
-
-      const avatar = document.createElement('span');
-      avatar.className = 'user-avatar';
-      avatar.style.background = c.color;
-      avatar.textContent = u.name.charAt(0).toUpperCase();
-
-      const info = document.createElement('span');
-      info.className = 'user-info';
-      const nm = document.createElement('span'); nm.className = 'user-name'; nm.textContent = u.name;
-      const st = document.createElement('span'); st.className = 'user-stars'; st.textContent = `⭐ ${countStars(u)}`;
-      info.appendChild(nm); info.appendChild(st);
-
-      const edit = document.createElement('button');
-      edit.type = 'button';
-      edit.className = 'mini-btn';
-      edit.textContent = '📝';
-      edit.title = 'Editar';
-      edit.addEventListener('click', (ev) => { ev.stopPropagation(); showForm(u); });
-
-      const del = document.createElement('button');
-      del.type = 'button';
-      del.className = 'mini-btn danger';
-      del.textContent = '🗑️';
-      del.title = 'Borrar';
-      del.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        if (confirm(`¿Borrar a ${u.name}? Su progreso se perderá.`)) {
-          Users.deleteUser(u.id);
-          ctx.syncUserState();
-          renderList();
-        }
-      });
-
-      card.addEventListener('click', () => {
-        Users.selectUser(u.id);
-        ctx.syncUserState();
-        hideForm();
-        ctx.renderHome();
-        forcedNew = false;
-        ctx.hideOverlay('#user-overlay');
-      });
-
-      card.appendChild(avatar); card.appendChild(info); card.appendChild(edit); card.appendChild(del);
+      const card = el('div', {
+        className: 'user-card' + (u.id === selId ? ' on' : ''),
+      }, [
+        el('button', {
+          type: 'button',
+          className: 'user-main',
+          on: { click: () => {
+            Users.selectUser(u.id);
+            ctx.syncUserState();
+            hideForm();
+            ctx.renderHome();
+            forcedNew = false;
+            ctx.hideOverlay('#user-overlay');
+          } },
+        }, [
+          el('span', { className: 'user-avatar', style: { background: c.color }, text: u.name.charAt(0).toUpperCase() }),
+          el('span', { className: 'user-info' }, [
+            el('span', { className: 'user-name', text: u.name }),
+            el('span', { className: 'user-stars', text: `⭐ ${countStars(u)}` }),
+          ]),
+        ]),
+        el('button', {
+          type: 'button',
+          className: 'mini-btn',
+          title: 'Editar',
+          text: '📝',
+          on: { click: (ev) => { ev.stopPropagation(); showForm(u); } },
+        }),
+        el('button', {
+          type: 'button',
+          className: 'mini-btn danger',
+          title: 'Borrar',
+          text: '🗑️',
+          on: { click: (ev) => {
+            ev.stopPropagation();
+            if (confirm(`¿Borrar a ${u.name}? Su progreso se perderá.`)) {
+              Users.deleteUser(u.id);
+              ctx.syncUserState();
+              renderList();
+            }
+          } },
+        }),
+      ]);
       list.appendChild(card);
     });
   }
@@ -103,13 +101,14 @@ const UsersUI = (() => {
     const picker = $('#user-color-picker');
     picker.innerHTML = '';
     Users.colors().forEach((c) => {
-      const sw = document.createElement('button');
-      sw.type = 'button';
-      sw.className = 'color-swatch' + (c.id === selectedColor ? ' on' : '');
-      sw.style.background = c.color;
-      sw.addEventListener('click', () => {
-        selectedColor = c.id;
-        $$('.color-swatch').forEach((x) => x.classList.toggle('on', x === sw));
+      const sw = el('button', {
+        type: 'button',
+        className: 'color-swatch' + (c.id === selectedColor ? ' on' : ''),
+        style: { background: c.color },
+        on: { click: () => {
+          selectedColor = c.id;
+          $$('.color-swatch').forEach((x) => x.classList.toggle('on', x === sw));
+        } },
       });
       picker.appendChild(sw);
     });
