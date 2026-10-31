@@ -14,6 +14,8 @@ const CORE = [
   './js/keyboard-dev.js',
   './js/users.js',
   './js/game.js',
+  './js/game-engine.js',
+  './js/game-render.js',
   './js/progression.js',
   './js/ui-home.js',
   './js/ui-users.js',

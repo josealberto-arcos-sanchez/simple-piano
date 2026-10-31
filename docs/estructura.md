@@ -8,7 +8,9 @@ js/audio.js         Sonido (síntesis Web Audio: modo Escuchar + eco del teclado
 js/midi.js          Lectura del teclado real (Web MIDI)
 js/keyboard-dev.js  Modo prueba con las teclas del ordenador
 js/users.js         Perfiles de usuario (localStorage, color, exportar/importar, escrituras encapsuladas con validación)
-js/game.js          Motor: notas que caen, modo espera, fase libre, velocidad, feedback
+js/game.js          Orquestador de la partida: bucle de animación, une motor y renderizador
+js/game-engine.js   Motor (simulación pura, sin canvas): modos escuchar/espera/libre, aciertos, velocidad, progreso
+js/game-render.js   Renderizador Canvas: dibuja el estado del motor (notas, teclado guía, partículas, feedback)
 js/progression.js   Reglas de dominio: modos disponibles, estrellas y puntuación
 js/ui-home.js       Vistas de inicio: niveles, canciones, detalle y chips
 js/ui-users.js      Overlay de jugadores: lista, formulario y exportar/importar
