@@ -14,8 +14,9 @@ contraseñas: el cambio entre jugadores es inmediato.
 - **Migración automática**: el progreso que se guardaba globalmente en
   `simple-piano-progress-v1` se convierte en el progreso del "Jugador 1".
 - **Memoria de la última pantalla**: cada perfil recuerda dónde se quedó
-  (menú de niveles o detalle de un nivel, el nivel elegido y su canción). Al
-  volver a abrir la app o al cambiar de jugador, se restaura esa pantalla.
+  (menú de niveles, listado de canciones de un nivel o detalle de una canción,
+  el nivel elegido y su canción). Al volver a abrir la app o al cambiar de
+  jugador, se restaura esa pantalla.
 
 ## Cambiar de jugador (rápido)
 

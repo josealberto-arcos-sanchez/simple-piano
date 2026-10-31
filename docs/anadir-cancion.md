@@ -1,6 +1,6 @@
 # Cómo añadir una canción nueva
 
-Para añadir una canción sólo hay que editar **`js/songs.js`** (no hace falta tocar HTML, CSS ni el resto del código: el selector de canciones y el guardado de estrellas aparecen automáticamente cuando hay 2 o más canciones en un nivel).
+Para añadir una canción sólo hay que editar **`js/songs.js`** (no hace falta tocar HTML, CSS ni el resto del código: la canción aparece automáticamente en el listado de su nivel con sus estrellas, y el guardado de estrellas funciona solo).
 
 ## 0. Cada canción pertenece a un nivel
 

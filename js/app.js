@@ -53,7 +53,7 @@ const App = (() => {
   let echoVoices = new Map();
 
   // ── navegación por niveles ──
-  let view = 'levels';      // 'levels' (menú) | 'level' (detalle de un nivel)
+  let view = 'levels';      // 'levels' (menú) | 'level' (canciones de un nivel) | 'song' (detalle de canción)
   let currentLevelId = 3;
 
   // ── perfiles de usuario (js/users.js) ──
@@ -87,8 +87,10 @@ const App = (() => {
     song = s;
     activeUser.prefs.songId = song.id;
     activeUser.prefs.levelId = currentLevelId;
-    // ▸ vista recordada (menú de niveles o detalle de nivel)
-    view = activeUser.prefs.view === 'level' ? 'level' : 'levels';
+    // ▸ vista recordada (menú de niveles, listado de canciones o detalle de canción)
+    view = activeUser.prefs.view === 'level' ? 'level'
+      : activeUser.prefs.view === 'song' ? 'song'
+      : 'levels';
     Users.persist();
     updateSpeedUI();
   }
@@ -234,7 +236,7 @@ const App = (() => {
     song = found;
     const u = currentUser();
     if (u) { u.prefs.songId = song.id; Users.persist(); }
-    renderLevelView();
+    setView('song');
   }
 
   function selectLevel(id) {
@@ -259,14 +261,22 @@ const App = (() => {
     setView('levels');
   }
 
+  function backToSongs() {
+    AudioEngine.sfx('tap');
+    setView('level');
+  }
+
   function setView(v) {
     view = v;
     const u = currentUser();
     if (u) { u.prefs.view = v; Users.persist(); }
     $('#levels-view').classList.toggle('hidden', v !== 'levels');
     $('#level-view').classList.toggle('hidden', v !== 'level');
+    $('#song-view').classList.toggle('hidden', v !== 'song');
     $('#level-msg').textContent = '';
-    if (v === 'levels') renderLevels(); else renderLevelView();
+    if (v === 'levels') renderLevels();
+    else if (v === 'level') renderLevelView();
+    else renderSongView();
   }
 
   // Pinta la pantalla de inicio en la vista recordada por el jugador.
@@ -327,7 +337,7 @@ const App = (() => {
     });
   }
 
-  // Detalle de nivel: canciones del nivel + tarjeta con sus modos.
+  // Menú intermedio: listado de canciones del nivel, con sus estrellas.
   function renderLevelView() {
     updateChip();
     updateUserChip();
@@ -340,24 +350,60 @@ const App = (() => {
     $('#level-sub').textContent = `${lvl.name} · ${lvl.description}`;
     $('#level-stars').textContent = `⭐ ${got} / ${maxS}`;
 
-    // selector de canciones del nivel
     const songs = songsOfLevel(lvl.id);
-    const picker = $('#song-picker');
-    picker.classList.toggle('hidden', songs.length <= 1);
-    picker.innerHTML = '';
+    const list = $('#song-list');
+    list.innerHTML = '';
     songs.forEach((s) => {
-      const b = document.createElement('button');
-      b.className = 'song-tab' + (s.id === song.id ? ' on' : '');
-      b.textContent = `${s.emoji} ${s.title}`;
-      const span = document.createElement('span');
-      span.className = 'song-tab-stars';
-      span.textContent = ` ⭐ ${userStarsOfSong(u, s)}/${maxStarsOfSong(s)}`;
-      b.appendChild(span);
-      b.addEventListener('click', () => { AudioEngine.sfx('tap'); selectSong(s.id); });
-      picker.appendChild(b);
-    });
+      const sMax = maxStarsOfSong(s);
+      const sGot = u ? userStarsOfSong(u, s) : 0;
+      const done = sMax > 0 && sGot === sMax;
 
-    // tarjeta de la canción activa
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'level-card song-list-card' + (done ? ' done' : '') + (s.id === song.id ? ' on' : '');
+
+      const emoji = document.createElement('span');
+      emoji.className = 'level-emoji';
+      emoji.textContent = s.emoji;
+      const title = document.createElement('h3');
+      title.textContent = s.title;
+      const desc = document.createElement('p');
+      desc.className = 'level-desc';
+      desc.textContent = [s.composer, s.subtitle].filter(Boolean).join(' · ');
+      card.appendChild(emoji); card.appendChild(title); card.appendChild(desc);
+
+      const score = document.createElement('span');
+      score.className = 'level-score';
+      score.textContent = `⭐ ${sGot} / ${sMax}` + (done ? ' 🏆' : '');
+      card.appendChild(score);
+
+      const bar = document.createElement('div');
+      bar.className = 'level-bar';
+      const fill = document.createElement('div');
+      fill.className = 'level-bar-fill';
+      fill.style.width = `${Math.round((sGot / sMax) * 100)}%`;
+      bar.appendChild(fill);
+      card.appendChild(bar);
+
+      card.addEventListener('click', () => {
+        AudioEngine.sfx('tap');
+        selectSong(s.id);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  // Detalle de una canción: tarjeta con sus modos y velocidad.
+  function renderSongView() {
+    updateChip();
+    updateUserChip();
+    const lvl = levelById(currentLevelId) || LEVELS[0];
+    const u = currentUser();
+
+    $('#song-view-level-title').textContent = `${lvl.emoji} ${lvl.title}`;
+    $('#song-view-level-sub').textContent = `${lvl.name} · ${lvl.description}`;
+    $('#song-stars').textContent = `⭐ ${u ? userStarsOfSong(u, song) : 0} / ${maxStarsOfSong(song)}`;
+
     $('#song-title').textContent = `${song.emoji} ${song.title}`;
     $('#song-sub').textContent = [song.composer, song.subtitle].filter(Boolean).join(' · ');
 
@@ -757,6 +803,7 @@ const App = (() => {
     $('#midi-chip').addEventListener('click', showConnect);
     $('#btn-help').addEventListener('click', showConnect);
     $('#btn-back-levels').addEventListener('click', backToLevels);
+    $('#btn-back-songs').addEventListener('click', backToSongs);
 
     $$('.mode-btn').forEach((b) => b.addEventListener('click', () => {
       AudioEngine.sfx('tap');

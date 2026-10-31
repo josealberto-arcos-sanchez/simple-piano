@@ -32,7 +32,7 @@
         <div id="level-list" class="level-list"></div>
       </div>
 
-      <!-- ✦ Detalle de un nivel: sus canciones -->
+      <!-- ✦ Detalle de un nivel: listado de sus canciones -->
       <div id="level-view" class="level-view hidden">
         <div class="level-header">
           <button id="btn-back-levels" class="round-btn" title="Volver a niveles">⬅️</button>
@@ -42,7 +42,19 @@
           </div>
           <span id="level-stars" class="level-stars">⭐ 0/0</span>
         </div>
-        <div id="song-picker" class="song-picker"></div>
+        <div id="song-list" class="song-list"></div>
+      </div>
+
+      <!-- ✦ Detalle de una canción: sus modos y velocidad -->
+      <div id="song-view" class="song-view hidden">
+        <div class="level-header">
+          <button id="btn-back-songs" class="round-btn" title="Volver a canciones">⬅️</button>
+          <div class="level-info">
+            <h2 id="song-view-level-title">Nivel 3</h2>
+            <p id="song-view-level-sub"></p>
+          </div>
+          <span id="song-stars" class="level-stars">⭐ 0/0</span>
+        </div>
         <div class="song-card">
           <div class="song-info">
             <h2 id="song-title">Himno de la Alegría</h2>
