@@ -120,10 +120,10 @@ Al tocar el código de niveles, comprueba con el navegador:
 
 - [ ] Menú principal: una tarjeta por nivel, todas abiertas (sin candados).
 - [ ] Estrellas por nivel correctas: Nivel 1 = 0/12, Nivel 2 = 0/12,
-      Nivel 3 = 0/36 (2 canciones × 6 y 3 × 12).
+      Nivel 3 = 0/48 (4 canciones × 12), Nivel 4 = 0/24 (2 canciones × 12).
 - [ ] Nivel 1 sólo muestra Escuchar · Mano derecha · ¡Toca libre! (sin
       "Mano izquierda" ni "¡Las dos manos!").
-- [ ] Nivel 3 muestra los 5 modos.
+- [ ] Nivel 3 y Nivel 4 muestran los 5 modos.
 - [ ] Al completar un modo, las estrellas del nivel suben (p. ej. 2/12) y el
       botón "Siguiente" salta al modo correcto (`rh → free` en canciones de
       una mano).

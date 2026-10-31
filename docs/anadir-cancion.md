@@ -13,6 +13,7 @@ Los niveles actuales son:
 | 1 | Nivel 1 👉 | Sólo mano derecha (`h: R`), sin mover la mano de su posición inicial (DO4–SOL4, dedos 1–5). |
 | 2 | Nivel 2 👈 | Sólo mano izquierda (`h: L`), sin mover la mano de su posición inicial (DO3–SOL3, dedos 5–1). |
 | 3 | Nivel 3 ✨ | Canciones sencillas con las dos manos, sin mover las manos de su posición inicial. |
+| 4 | Nivel 4 🤝 | Las dos manos en equipo, sin moverlas de su posición: diálogo pregunta-respuesta, acordes sencillos (fundamental+quinta) en la izquierda y ritmos nuevos (vals 3/4). Ver [Niveles del método](niveles.md). |
 
 > **Añadir un nivel nuevo en el futuro**: basta con añadir un objeto al array `LEVELS` (id, título, emoji, nombre y descripción). Los niveles sin canciones se muestran como "Próximamente". Las estrellas máximas de cada nivel se calculan solas a partir de sus canciones.
 

@@ -63,6 +63,13 @@ const LEVELS = [
     name: 'Las dos manos',
     description: 'Canciones sencillas con las dos manos, sin moverlas de su sitio.',
   },
+  {
+    id: 4,
+    title: 'Nivel 4',
+    emoji: '🤝',
+    name: 'Manos en equipo',
+    description: 'Las dos manos se ayudan: una llama y la otra responde, o tocan acordes sencillos juntas, sin moverse de sitio.',
+  },
 ];
 
 // ── Compilador de la notación compacta → formato interno ──
@@ -75,8 +82,15 @@ function parseNoteToken(tok) {
     return { jump: Number.isFinite(beat) && beat >= 0 ? beat : 0 };
   }
   if (t[0] === '&') {
-    const d = parseFloat(t.slice(1));
-    return { rest: Number.isFinite(d) && d > 0 ? d : 1 };
+    // '&' o '&:duración' (p. ej. '&:1', '&:0.5', '&:4').
+    // El separador es ':' (igual que en las notas); si falta o es inválido, 1 pulso.
+    let d = 1;
+    const c = t.indexOf(':');
+    if (c >= 0) {
+      const v = parseFloat(t.slice(c + 1));
+      if (Number.isFinite(v) && v > 0) d = v;
+    }
+    return { rest: d };
   }
   const i = t.indexOf(':');
   const name = (i >= 0 ? t.slice(0, i) : t).trim();
@@ -375,7 +389,104 @@ const RONDA_SOL = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL]
+// ── Preguntas y respuestas (original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 4: diálogo entre las dos manos. En los compases 1–6 la mano derecha
+// lanza tres preguntas distintas y la izquierda le responde en el registro
+// grave; en los compases 7–8 se unen las dos manos para cerrar la canción en
+// equipo. Ninguna mano se mueve de su posición fija (DO central / DO grave).
+const PREGUNTAS_RESPUESTAS = {
+  id: 'preguntas-respuestas',
+  title: 'Preguntas y respuestas',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Do mayor',
+  emoji: '💬',
+  level: 4,
+  bpm: 76,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compás 1: primera pregunta (arpegio ascendente, queda abierta en SOL)
+      'C4:1/1', 'E4:1/3', 'G4:2/5',
+      // compás 2: escucha la respuesta de la izquierda
+      '&:4',
+      // compás 3: segunda pregunta (sube paso a paso)
+      'D4:1/2', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      // compás 4: escucha la respuesta
+      '&:4',
+      // compás 5: tercera pregunta (impulso desde DO hasta SOL)
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
+      // compás 6: escucha la respuesta
+      '&:4',
+      // compases 7–8: las dos manos se unen para el final
+      'G4:1/5', 'E4:1/3', 'F4:1/4', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      // compás 1: espera la primera pregunta
+      '&:4',
+      // compás 2: primera respuesta (arpegio en espejo hacia DO)
+      'G3:1/1', 'E3:1/3', 'C3:2/5',
+      // compás 3: escucha la segunda pregunta
+      '&:4',
+      // compás 4: segunda respuesta (reposa en RE, semicadencia)
+      'F3:1/2', 'E3:1/3', 'D3:2/4',
+      // compás 5: escucha la tercera pregunta
+      '&:4',
+      // compás 6: tercera respuesta (baja suavemente a MI y prepara el final)
+      'G3:1/1', 'F3:1/2', 'E3:2/3',
+      // compases 7–8: acompaña a la derecha en el cierre conjunto
+      'C3:2/5', 'G3:2/1',
+      'C3:4/5',
+    ],
+  },
+};
+
+// ── Vals de las nubes (original) · Do mayor · 3/4 · 8 compases ──
+// Nivel 4: primer vals. Mano derecha: melodía suave en 3/4. Mano izquierda:
+// acompañamiento de acordes de dos notas sostenidos un compás entero (I–V–I y
+// I–IV–V–I), alineados con la armonía de cada compás.
+const VALS_DE_LAS_NUBES = {
+  id: 'vals-de-las-nubes',
+  title: 'Vals de las nubes',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Vals · Do mayor',
+  emoji: '☁️',
+  level: 4,
+  bpm: 70,
+  beatsPerMeasure: 3,
+  totalBeats: 24,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–4: primera frase (I – I – V – I)
+      'C4:1/1', 'D4:1/2', 'E4:1/3',
+      'G4:1/5', 'F4:1/4', 'E4:1/3',
+      'D4:1/2', 'E4:1/3', 'D4:1/2',
+      'C4:2/1', 'D4:1/2',
+      // compases 5–8: segunda frase (I – IV – V – I)
+      'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'F4:1/4', 'E4:1/3', 'C4:1/1',
+      'D4:2/2', 'E4:1/3',
+      'C4:3/1',
+    ],
+    L: [
+      ['C3:3/5', 'G3:3/1'],
+      ['C3:3/5', 'G3:3/1'],
+      ['G3:3/1', 'D3:3/4'],
+      ['C3:3/5', 'G3:3/1'],
+      ['C3:3/5', 'G3:3/1'],
+      ['F3:3/2', 'C3:3/5'],
+      ['G3:3/1', 'D3:3/4'],
+      ['C3:3/5', 'G3:3/1'],
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──
@@ -418,6 +529,7 @@ function validateSongs(songs = SONGS) {
     if (s.level === 1 && !(hasR && !hasL)) problems.push(`${tag}: el nivel 1 debe ser sólo mano derecha (R)`);
     if (s.level === 2 && !(hasL && !hasR)) problems.push(`${tag}: el nivel 2 debe ser sólo mano izquierda (L)`);
     if (s.level === 3 && !(hasR && hasL)) problems.push(`${tag}: el nivel 3 debe tener las dos manos (R y L)`);
+    if (s.level === 4 && !(hasR && hasL)) problems.push(`${tag}: el nivel 4 debe tener las dos manos (R y L)`);
   }
   return problems;
 }
