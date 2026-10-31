@@ -123,7 +123,16 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
   * Usar un pequeño helper declarativo `el(tag, attrs, children)` para reducir a la mitad el código de renderizado manteniéndolo seguro frente a XSS.
   * Cambiar `.user-card` a un `<div>` contenedor con un botón principal de selección y botones hermanos para editar/borrar, evitando anidar `<button>` dentro de `<button>`.
 
-#### 10. Pruebas automatizadas dependientes exclusivamente de la UI del navegador
+#### 10. ✅ Realizado — Pruebas automatizadas dependientes exclusivamente de la UI del navegador
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * Creado **`test.html`**: página de **tests unitarios/integración** que corre en el navegador sin interacción ni esperas en tiempo real. Importa directamente los módulos (`Game`, `Users`, `Progression`, `SONGS`, `validateSongs`) — no depende del `window.__debug__` de la app.
+  * Cubre 4 bloques (**56 aserciones**):
+    * **Usuarios**: validación (`recordProgress` con id/modo inválidos), `clamp` de estrellas a 1–3 y conservación del mejor resultado, `markListened`, y fusión/descarte en `importData` (sin bajar estrellas).
+    * **Catálogo**: `validateSongs()` sin problemas, 10 canciones con id único, todos los niveles con canciones.
+    * **Progresión**: estrellas máximas por nivel (12/12/48/24), modos disponibles según las manos, `nextMode` y `scoreResult` (cero castigo).
+    * **Simulación acelerada de partidas completas** en cada modo (`rh`, `lh`, `both`, `free`, `listen`) para las 10 canciones usando `Game._step(0.03)` + `Game.noteon`/`noteoff`, verificando que una partida perfecta da siempre 3 estrellas (y que `listen` termina en `finish.listen`).
+  * Verificado en navegador: `http://127.0.0.1:8234/test.html` muestra "Resumen: 56/56 correctos" con consola limpia (0 errores).
 * **Problema:** Como documenta `docs/pruebas-automatizadas.md`, verificar cualquier cambio requiere levantar el servidor, abrir el navegador y simular pulsaciones de teclas esperando en tiempo real (con trampas como la pérdida de pulsaciones rápidas o esperas de 17 segundos en el modo escuchar).
 * **Impacto:** Las pruebas son lentas y frágiles ante cualquier cambio de texto en la interfaz.
 * **Mejora:** Aprovechando que ya existe `Game._step(dt)` y `Game._dbg()`, se puede incluir una página o script de **tests unitarios/integración en el propio navegador** (p. ej. `test.html` o una función ejecutable vía `tools.browser.evaluate`) que valide instantáneamente en milisegundos: migración/fusión de `Users`, integridad de todas las canciones de `SONGS`, cálculo de estrellas por nivel y simulación acelerada de una partida completa en cada modo (`rh`, `lh`, `both`, `free`, `listen`) usando `Game._step(0.05)`.

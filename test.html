@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tests · Simple Piano</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #151226; color: #f8fafc; padding: 1.5rem; line-height: 1.45;
+  }
+  h1 { font-size: 1.15rem; margin: 0 0 .25rem; }
+  p.sub { opacity: .65; margin: 0 0 1rem; font-size: .85rem; }
+  /* el canvas es necesario para que el renderizador exista, pero se mantiene
+     fuera de pantalla (no afecta a la simulación pura del motor) */
+  #stage { position: absolute; left: -9999px; top: 0; width: 640px; height: 360px; }
+  .suite {
+    background: #1e1b36; border: 1px solid #2d2a4a; border-radius: 12px;
+    padding: .9rem 1.1rem; margin-bottom: .8rem;
+  }
+  .suite h2 { font-size: 1rem; margin: 0 0 .5rem; display: flex; gap: .5rem; align-items: center; }
+  .suite h2 .count { font-size: .75rem; opacity: .6; font-weight: normal; }
+  ol { margin: .3rem 0 0; padding-left: 1.3rem; }
+  li { margin: .18rem 0; }
+  li.pass::marker, .pass { color: #4ade80; }
+  li.fail::marker, .fail { color: #f87171; font-weight: 600; }
+  .summary { font-weight: 700; margin-top: .6rem; }
+  .summary.ok { color: #4ade80; } .summary.bad { color: #f87171; }
+  pre.err {
+    background: #2a0f1e; border: 1px solid #f87171; padding: .5rem;
+    border-radius: 8px; overflow: auto; font-size: .78rem; white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+<h1>🧪 Tests automatizados · Simple Piano</h1>
+<p class="sub">Tests unitarios/integración en el navegador, sin interacción (la parte de juego usa <code>Game._step</code> acelerada). Recarga para repetir.</p>
+<canvas id="stage" width="640" height="360"></canvas>
+<div id="results"></div>
+
+<script type="module">
+import { Game } from './js/game.js';
+import { Users } from './js/users.js';
+import { Progression } from './js/progression.js';
+import { SONGS, LEVELS, validateSongs } from './js/songs.js';
+
+// ── mini marco de pruebas (simple, sin dependencias) ──
+const suites = [];
+let current = null;
+function suite(name, fn) {
+  current = { name, tests: [] };
+  fn();
+  suites.push(current);
+}
+function test(name, fn) {
+  try {
+    fn();
+    current.tests.push({ name, ok: true });
+  } catch (e) {
+    current.tests.push({ name, ok: false, error: String((e && e.stack) || e) });
+  }
+}
+function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion falló'); }
+
+// ── A. Usuarios: escrituras encapsuladas, validación y fusión ──
+suite('Usuarios: validación, clamp y fusión', () => {
+  test('recordProgress con usuario inexistente devuelve false', () => {
+    assert(Users.recordProgress('u_no_existe', 'x-song', 'rh', 3) === false);
+  });
+  test('recordProgress con modo desconocido devuelve false', () => {
+    const u = Users.createUser('Tmp', 'rosa');
+    try {
+      assert(Users.recordProgress(u.id, 'x-song', 'bogus', 3) === false);
+    } finally { Users.deleteUser(u.id); }
+  });
+  test('recordProgress ajusta estrellas al rango 1..3', () => {
+    const u = Users.createUser('Tmp', 'rosa');
+    try {
+      Users.recordProgress(u.id, 'x-song', 'rh', 999);
+      Users.recordProgress(u.id, 'x-song', 'lh', 0);
+      const exp = Users.exportAll().users.find((x) => x.id === u.id);
+      assert(exp.progress['x-song'].rh.stars === 3, 'rh debía quedar en 3');
+      assert(exp.progress['x-song'].lh.stars === 1, 'lh debía quedar en 1');
+    } finally { Users.deleteUser(u.id); }
+  });
+  test('recordProgress conserva el mejor resultado', () => {
+    const u = Users.createUser('Tmp', 'rosa');
+    try {
+      Users.recordProgress(u.id, 'x-song', 'rh', 3);
+      Users.recordProgress(u.id, 'x-song', 'rh', 1);
+      const exp = Users.exportAll().users.find((x) => x.id === u.id);
+      assert(exp.progress['x-song'].rh.stars === 3, 'no debe bajar de 3 a 1');
+    } finally { Users.deleteUser(u.id); }
+  });
+  test('markListened marca listen=true', () => {
+    const u = Users.createUser('Tmp', 'rosa');
+    try {
+      Users.markListened(u.id, 'x-song');
+      const exp = Users.exportAll().users.find((x) => x.id === u.id);
+      assert(exp.progress['x-song'].listen === true);
+    } finally { Users.deleteUser(u.id); }
+  });
+  test('importData descarta usuarios sin nombre válido', () => {
+    const before = Users.all().length;
+    const added = Users.importData({
+      version: 1,
+      users: [{ id: 'u_bad', color: 'rosa', prefs: {}, progress: {} }],
+    });
+    assert(added === 0, 'debía añadir 0 usuarios');
+    assert(Users.all().length === before, 'no debe crecer la lista');
+  });
+  test('importData fusiona sin pisar mejores estrellas', () => {
+    const u = Users.createUser('TmpFusion', 'rosa');
+    try {
+      Users.recordProgress(u.id, 'y-song', 'rh', 3);
+      const added = Users.importData({
+        version: 1,
+        users: [{
+          id: u.id, name: 'TmpFusion', color: 'rosa',
+          progress: { 'y-song': { rh: { stars: 1, date: '2026-01-01T00:00:00Z' } } },
+        }],
+      });
+      assert(added === 0, 'mismo id: no debe añadir');
+      const exp = Users.exportAll().users.find((x) => x.id === u.id);
+      assert(exp.progress['y-song'].rh.stars === 3, 'no debe bajar de 3 a 1');
+    } finally { Users.deleteUser(u.id); }
+  });
+});
+
+// ── B. Catálogo de canciones ──
+suite('Catálogo de canciones', () => {
+  test('validateSongs no encuentra problemas', () => {
+    const problems = validateSongs();
+    assert(Array.isArray(problems) && problems.length === 0,
+      'problemas encontrados:\n' + problems.join('\n'));
+  });
+  test('hay 10 canciones con id único', () => {
+    assert(SONGS.length === 10, `esperaba 10 canciones, hay ${SONGS.length}`);
+    const ids = new Set(SONGS.map((s) => s.id));
+    assert(ids.size === SONGS.length, 'hay ids repetidos');
+  });
+  test('cada nivel tiene al menos una canción', () => {
+    LEVELS.forEach((l) => {
+      assert(SONGS.some((s) => s.level === l.id), `nivel ${l.id} sin canciones`);
+    });
+  });
+});
+
+// ── C. Progresión: modos y estrellas por nivel ──
+suite('Progresión: modos y estrellas', () => {
+  test('estrellas máximas por nivel', () => {
+    assert(Progression.maxStarsOfLevel(1) === 12, 'Nivel 1 debía ser 12');
+    assert(Progression.maxStarsOfLevel(2) === 12, 'Nivel 2 debía ser 12');
+    assert(Progression.maxStarsOfLevel(3) === 48, 'Nivel 3 debía ser 48');
+    assert(Progression.maxStarsOfLevel(4) === 24, 'Nivel 4 debía ser 24');
+  });
+  test('modos disponibles según las manos', () => {
+    const lvl1 = SONGS.find((s) => s.level === 1);
+    const lvl4 = SONGS.find((s) => s.level === 4);
+    assert(JSON.stringify(Progression.availableModes(lvl1)) === JSON.stringify(['listen', 'rh', 'free']),
+      'nivel 1 (sólo R) debe ser listen/rh/free');
+    assert(JSON.stringify(Progression.availableModes(lvl4)) === JSON.stringify(['listen', 'rh', 'lh', 'both', 'free']),
+      'nivel 4 (R+L) debe tener los 5 modos');
+  });
+  test('nextMode encadena correctamente', () => {
+    const lvl1 = SONGS.find((s) => s.level === 1);
+    const lvl4 = SONGS.find((s) => s.level === 4);
+    assert(Progression.nextMode('rh', lvl1) === 'free');
+    assert(Progression.nextMode('free', lvl1) === null);
+    assert(Progression.nextMode('rh', lvl4) === 'lh');
+    assert(Progression.nextMode('lh', lvl4) === 'both');
+    assert(Progression.nextMode('both', lvl4) === 'free');
+    assert(Progression.nextMode('free', lvl4) === null);
+  });
+  test('scoreResult: puntuación (cero castigo)', () => {
+    assert(Progression.scoreResult({ errors: 0 }).stars === 3);
+    assert(Progression.scoreResult({ errors: 3 }).stars === 2);
+    assert(Progression.scoreResult({ errors: 5 }).stars === 1);
+    assert(Progression.scoreResult({ free: true, hits: 10, total: 10, wrong: 0 }).stars === 3);
+    assert(Progression.scoreResult({ free: true, hits: 6, total: 10, wrong: 2 }).stars === 2);
+    assert(Progression.scoreResult({ free: true, hits: 2, total: 10, wrong: 3 }).stars === 1);
+  });
+});
+
+// ── D. Simulación acelerada de partidas completas ──
+suite('Simulación de partidas completas (Game._step)', () => {
+  // Modos "con espera" (rh / lh / both): cuando aparece un evento pendiente,
+  // se tocan todas sus notas; así la partida avanza perfecta hasta el final.
+  function playRhythm(song, mode) {
+    const res = { guard: 0 };
+    Game.start(song, mode, { progress() {}, finish(r) { res.finish = r; } }, 1);
+    while (Game._dbg().running && res.guard++ < 3000000) {
+      const dbg = Game._dbg();
+      if (dbg.pending) {
+        for (const midi of dbg.pending.need) { Game.noteon(midi, 100); Game.noteoff(midi); }
+      }
+      Game._step(0.03);
+    }
+    Game.stop();
+    return res;
+  }
+  // Modo Escuchar: no se toca nada; la canción suena sola y termina sola.
+  function playListen(song) {
+    const res = { guard: 0 };
+    Game.start(song, 'listen', { progress() {}, finish(r) { res.finish = r; } }, 1);
+    while (Game._dbg().running && res.guard++ < 3000000) Game._step(0.03);
+    Game.stop();
+    return res;
+  }
+  // Modo Libre: tras la cuenta atrás, se acierta cada nota cuando su
+  // rectángulo cruza la línea dorada (ventana igual a la del motor).
+  function playFree(song) {
+    const res = { guard: 0 };
+    Game.start(song, 'free', { progress() {}, finish(r) { res.finish = r; } }, 1);
+    const done = new Set();
+    while (Game._dbg().running && res.guard++ < 3000000) {
+      const dbg = Game._dbg();
+      if (dbg.songBeat > 0) {
+        for (let i = 0; i < song.notes.length; i++) {
+          if (done.has(i)) continue;
+          const n = song.notes[i];
+          if (dbg.songBeat >= n.b - 0.30 && dbg.songBeat <= n.b + Math.max(n.d, 0.5) + 0.15) {
+            Game.noteon(n.m, 100);
+            Game.noteoff(n.m);
+            done.add(i);
+          }
+        }
+      }
+      Game._step(0.03);
+    }
+    Game.stop();
+    return res;
+  }
+
+  for (const song of SONGS) {
+    const modes = Progression.availableModes(song);
+    for (const mode of modes) {
+      test(`${song.id} · ${mode} (partida perfecta)`, () => {
+        const res = mode === 'listen'
+          ? playListen(song)
+          : mode === 'free' ? playFree(song) : playRhythm(song, mode);
+        assert(res.finish, `${song.id} · ${mode}: no llegó finish (guard=${res.guard})`);
+        const stars = Progression.scoreResult(res.finish).stars;
+        if (mode === 'listen') {
+          assert(res.finish.listen === true, 'listen: finish.listen debe ser true');
+        } else {
+          assert(stars === 3, `${song.id} · ${mode}: esperaba 3 estrellas, obtuve ${stars}`);
+        }
+      });
+    }
+  }
+});
+
+// ── render de resultados ──
+function render() {
+  const host = document.getElementById('results');
+  let total = 0, pass = 0;
+  const html = [];
+  for (const s of suites) {
+    let sp = 0;
+    const items = s.tests.map((t) => {
+      total++; if (t.ok) { pass++; sp++; }
+      return `<li class="${t.ok ? 'pass' : 'fail'}">${t.ok ? '✓' : '✗'} ${t.name}${t.ok ? '' : '<pre class="err">' + escapeHtml(t.error) + '</pre>'}</li>`;
+    }).join('');
+    html.push(
+      `<div class="suite"><h2>${escapeHtml(s.name)} <span class="count">(${sp}/${s.tests.length})</span></h2>` +
+      `<ol>${items}</ol></div>`
+    );
+  }
+  html.push(`<div class="summary ${pass === total ? 'ok' : 'bad'}">Resumen: ${pass}/${total} correctos</div>`);
+  host.innerHTML = html.join('');
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+render();
+</script>
+</body>
+</html>
