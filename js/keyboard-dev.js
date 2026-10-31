@@ -9,26 +9,30 @@ const DevKeys = (() => {
     q: 60, 2: 61, w: 62, 3: 63, e: 64, r: 65, 5: 66, t: 67,
   };
   let active = false;
+  let route = null;                    // función de reenvío inyectada por la app (sin dependencia circular)
   const held = new Set();
 
   function enable(v) { active = v; }
+  function setRoute(fn) { route = fn; }
   function handle(e, down) {
     if (!active || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     const m = KEYMAP[e.key.toLowerCase()];
     if (m === undefined) return;
     if (down && !held.has(m)) {
       held.add(m);
-      App.route('noteon', m, 100);
+      if (route) route('noteon', m, 100);
       e.preventDefault();
     } else if (!down && held.has(m)) {
       held.delete(m);
-      App.route('noteoff', m);
+      if (route) route('noteoff', m);
       e.preventDefault();
     }
   }
   window.addEventListener('keydown', (e) => handle(e, true));
   window.addEventListener('keyup', (e) => handle(e, false));
-  window.addEventListener('blur', () => { held.forEach((m) => App.route('noteoff', m)); held.clear(); });
+  window.addEventListener('blur', () => { held.forEach((m) => route && route('noteoff', m)); held.clear(); });
 
-  return { enable, get active() { return active; }, KEYMAP };
+  return { enable, setRoute, get active() { return active; }, KEYMAP };
 })();
+
+export { DevKeys };

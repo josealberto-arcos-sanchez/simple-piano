@@ -13,8 +13,14 @@ Aquí tienes los puntos de mejora ordenados de **más grave/importante a menos i
   * Separada la gestión de vistas en **controladores ligeros**: `js/ui-home.js` (menú de niveles, canciones, detalle y chips), `js/ui-users.js` (overlay de jugadores: lista, formulario, exportar/importar) y `js/ui-connect.js` (overlay de conexión y modo prueba).
   * `js/app.js` pasó de ~995 a ~475 líneas: conserva el ciclo de vida, `route`, la partida, WakeLock, Service Worker, ajustes y la navegación; comunica estado y acciones a los controladores vía un objeto `ctx` (sin dependencias circulares entre ficheros).
 
-#### 2. Ausencia de Módulos ES (`import` / `export`) y contaminación del ámbito global
-* **Problema:** El proyecto carga 7 scripts secuenciales en `index.html` mediante etiquetas `<script>` clásicas, comunicándose a través de variables globales (`SONGS`, `LEVELS`, `R`, `L`, `midiToName`, `Users`, `Game`, `AudioEngine`, `MIDI`, `DevKeys`, `App`).
+#### 2. ✅ Realizado — Ausencia de Módulos ES (`import` / `export`) y contaminación del ámbito global
+* **Estado:** ✅ Hecho (31 oct 2026).
+* **Qué se hizo:**
+  * `index.html` ahora carga un único `<script type="module" src="js/app.js">`; los otros 10 ficheros JS son módulos ES que declaran explícitamente sus `import`/`export`. No hace falta *bundler* ni Node: funciona en cualquier navegador moderno y en `scripts/serve.ps1`.
+  * Se eliminó la dependencia circular implícita `App ↔ DevKeys`: `DevKeys` ya no llama a `App.route`; la app inyecta su ruta con `DevKeys.setRoute(route)`.
+  * La contaminación del ámbito global desaparece: `SONGS`, `LEVELS`, `R`, `L`, `midiToName`, `Users`, `Game`, `AudioEngine`, `MIDI`, `DevKeys`, `App`, etc. ya no aterrizan en `window`.
+  * Para depuración y tests automatizados se expone un único gancho intencional `window.__debug__` con todos los módulos (`App`, `Game`, `SONGS`, `Users`, `MIDI`, …).
+* **Problema original:** El proyecto cargaba scripts secuenciales en `index.html` mediante etiquetas `<script>` clásicas, comunicándose a través de variables globales (`SONGS`, `LEVELS`, `R`, `L`, `midiToName`, `Users`, `Game`, `AudioEngine`, `MIDI`, `DevKeys`, `App`).
 * **Impacto:**
   * Existe acoplamiento implícito al orden de carga en `index.html` (si `songs.js` no carga antes que `game.js` y `app.js`, todo rompe).
   * Constantes de un solo carácter como `R` y `L` están en el scope global (`window`).

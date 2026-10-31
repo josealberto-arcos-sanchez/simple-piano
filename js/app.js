@@ -1,5 +1,16 @@
 // App principal: pantallas, progreso, conexión del teclado y celebración.
 
+import { SONGS, LEVELS } from './songs.js';
+import { Progression } from './progression.js';
+import { AudioEngine } from './audio.js';
+import { MIDI } from './midi.js';
+import { Users } from './users.js';
+import { Game } from './game.js';
+import { HomeUI } from './ui-home.js';
+import { UsersUI } from './ui-users.js';
+import { ConnectUI } from './ui-connect.js';
+import { DevKeys } from './keyboard-dev.js';
+
 const App = (() => {
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -138,6 +149,7 @@ const App = (() => {
     HomeUI.init(ctx);
     UsersUI.init(ctx);
     ConnectUI.init(ctx);
+    DevKeys.setRoute(route);   // el modo prueba reenvía sus notas a la ruta de la app
     bindUI();
     registerSW();
 
@@ -474,3 +486,9 @@ const App = (() => {
 
   return { route, get devMode() { return ConnectUI.isDevMode(); } };
 })();
+
+export { App };
+
+// Gancho de depuración/pruebas: un único espacio con nombre (intencional) para que
+// la consola y los tests automáticos puedan inspeccionar los módulos.
+window.__debug__ = { App, Game, SONGS, LEVELS, Users, MIDI, Progression, AudioEngine, HomeUI, UsersUI, ConnectUI, DevKeys };

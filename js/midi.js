@@ -51,3 +51,5 @@ const MIDI = (() => {
 
   return { init, on, state };
 })();
+
+export { MIDI };

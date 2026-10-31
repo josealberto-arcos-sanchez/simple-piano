@@ -1,6 +1,9 @@
 // Overlay de jugadores: lista, formulario, colores y exportar/importar.
 // Recibe vía UsersUI.init(ctx) las acciones de la app (sync, renderHome, overlays).
 
+import { Users } from './users.js';
+import { Progression } from './progression.js';
+
 const UsersUI = (() => {
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -247,3 +250,5 @@ const UsersUI = (() => {
 
   return { init, open };
 })();
+
+export { UsersUI };

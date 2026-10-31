@@ -196,16 +196,22 @@
 
   <noscript>Necesitas JavaScript para usar Simple Piano.</noscript>
 
-  <script src="js/songs.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/midi.js"></script>
-  <script src="js/keyboard-dev.js"></script>
-  <script src="js/users.js"></script>
-  <script src="js/game.js"></script>
-  <script src="js/progression.js"></script>
-  <script src="js/ui-home.js"></script>
-  <script src="js/ui-users.js"></script>
-  <script src="js/ui-connect.js"></script>
-  <script src="js/app.js"></script>
+  <script>
+    // Simple Piano usa módulos ES, que el navegador sólo permite cargar por HTTP(s).
+    // Si la app no arranca en unos segundos (p. ej. al abrir index.html como archivo
+    // local file://), mostramos un aviso en lugar de una pantalla en blanco/colgada.
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (window.__debug__) return;
+        const tip = document.createElement('div');
+        tip.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#151226;color:#f8fafc;font:600 16px system-ui,sans-serif;text-align:center;padding:24px;z-index:9999;line-height:1.6';
+        tip.innerHTML = '⚠️ No se pudo cargar Simple Piano aquí.<br>' +
+          '<small>La app necesita servirse por HTTP: ejecuta <code>scripts/serve.ps1</code> ' +
+          'y abre <code>http://127.0.0.1:8080</code> (mira <code>docs/probar-en-ordenador.md</code>).</small>';
+        document.body.appendChild(tip);
+      }, 3000);
+    });
+  </script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

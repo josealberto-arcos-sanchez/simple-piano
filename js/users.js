@@ -232,3 +232,5 @@ const Users = (() => {
     persist: save,
   };
 })();
+
+export { Users };

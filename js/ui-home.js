@@ -1,6 +1,12 @@
 // Vistas de inicio: menú de niveles, listado de canciones, detalle de canción y chips.
 // Recibe vía HomeUI.init(ctx) un contexto con el estado actual y acciones de navegación.
 
+import { LEVELS } from './songs.js';
+import { Progression } from './progression.js';
+import { AudioEngine } from './audio.js';
+import { Users } from './users.js';
+import { MIDI } from './midi.js';
+
 const HomeUI = (() => {
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -206,3 +212,5 @@ const HomeUI = (() => {
 
   return { init, show, updateChip, updateUserChip };
 })();
+
+export { HomeUI };
