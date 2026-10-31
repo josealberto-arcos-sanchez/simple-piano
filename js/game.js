@@ -2,6 +2,9 @@
 // El teclado de la pantalla es SÓLO guía: la niña toca en su piano real (Web MIDI).
 // Modo espera: la nota frena en la línea de acierto y no avanza hasta acertar.
 
+import { AudioEngine } from './audio.js';
+import { midiToName } from './songs.js';
+
 const Game = (() => {
   const HAND = {
     R: { fill: '#22c55e', edge: '#86efac' },  // mano derecha: verde
@@ -532,3 +535,5 @@ const Game = (() => {
 
   return { start, stop, noteon, noteoff, tap, resize, setSpeed, _dbg, _step: step };
 })();
+
+export { Game };

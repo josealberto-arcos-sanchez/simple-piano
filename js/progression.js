@@ -1,6 +1,8 @@
 // Reglas de dominio de canciones/niveles: modos disponibles, estrellas y puntuación.
 // Depende de SONGS / LEVELS / R / L (js/songs.js). No toca el DOM ni la UI.
 
+import { SONGS, LEVELS, R, L } from './songs.js';
+
 const Progression = (() => {
   // Modos disponibles según las manos que participan en una canción.
   // Nivel 1 (sólo R) → escuchar · derecha · libre · Nivel 2 (sólo L) → escuchar · izquierda · libre
@@ -90,3 +92,5 @@ const Progression = (() => {
     scoreResult,
   };
 })();
+
+export { Progression };

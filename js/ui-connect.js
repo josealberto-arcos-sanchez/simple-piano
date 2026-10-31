@@ -1,6 +1,10 @@
 // Overlay de conexión del teclado (Web MIDI / modo prueba).
 // Recibe vía ConnectUI.init(ctx) las acciones de la app (launchGame, overlays, eco).
 
+import { MIDI } from './midi.js';
+import { midiToName } from './songs.js';
+import { DevKeys } from './keyboard-dev.js';
+
 const ConnectUI = (() => {
   const $ = (s) => document.querySelector(s);
 
@@ -67,3 +71,5 @@ const ConnectUI = (() => {
 
   return { init, show, updateLive, testNote, isDevMode: () => devMode };
 })();
+
+export { ConnectUI };

@@ -50,7 +50,7 @@ Dentro de Code Mode (la función `execute`), el namespace `tools.browser.*` ofre
 | `wait` | Esperar condiciones: `condition: 'load' \| 'text' \| 'textGone'` + `text` + `timeoutMs` (hasta 30000). |
 | `reload` | Recargar la página (útil para probar la memoria de pantalla). |
 | `console` | Leer mensajes y errores no capturados de la consola del navegador. |
-| `evaluate` | Ejecutar JavaScript en la página (p. ej. inspeccionar `localStorage`, `App`, `Game`). |
+| `evaluate` | Ejecutar JavaScript en la página (p. ej. inspeccionar `localStorage`, `__debug__.App`, `__debug__.Game`). |
 | `screenshot` | Captura PNG (se guarda en el servidor). Ojo: algunos modelos **no pueden leer imágenes**; prefiere `snapshot`. |
 
 ## 4. Flujo de prueba recomendado

@@ -122,3 +122,5 @@ const AudioEngine = (() => {
     get echo() { return echoOn; },
   };
 })();
+
+export { AudioEngine };
