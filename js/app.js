@@ -270,6 +270,9 @@ const App = (() => {
   }
 
   function launchGame() {
+    // Al abrir el overlay de conexión desde "¿Cómo conecto…?" aún no hay
+    // modo elegido; por defecto se empieza escuchando la canción actual.
+    if (!currentMode || !MODES[currentMode]) currentMode = 'listen';
     const m = MODES[currentMode];
     showScreen('game');
     updateGameUser();
