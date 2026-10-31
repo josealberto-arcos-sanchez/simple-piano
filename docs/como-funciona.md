@@ -4,7 +4,7 @@
    selecciona tu cuenta (nombre + color). Cada jugador guarda sus propias
    estrellas. Ver [Perfiles de usuario](usuarios.md).
 1. **Niveles**: el menú principal muestra todos los niveles (1 👉 mano
-   derecha, 2 👈 mano izquierda, 3 ✨ las dos manos), todos **abiertos** desde
+   derecha, 2 👈 mano izquierda, 3 ✨ las dos manos, 4 🤝 manos en equipo), todos **abiertos** desde
    el principio. Cada nivel muestra las estrellas conseguidas por el jugador
    (⭐ conseguidas / totales) y una barra de progreso; al completarlo del todo,
    la tarjeta se corona 🏆. Al entrar en un nivel aparece el **listado de sus

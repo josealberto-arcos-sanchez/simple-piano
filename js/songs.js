@@ -63,6 +63,13 @@ const LEVELS = [
     name: 'Las dos manos',
     description: 'Canciones sencillas con las dos manos, sin moverlas de su sitio.',
   },
+  {
+    id: 4,
+    title: 'Nivel 4',
+    emoji: '🤝',
+    name: 'Manos en equipo',
+    description: 'Las dos manos se ayudan: una llama y la otra responde, o tocan acordes sencillos juntas, sin moverse de sitio.',
+  },
 ];
 
 // ── Compilador de la notación compacta → formato interno ──
@@ -382,7 +389,96 @@ const RONDA_SOL = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL]
+// ── Preguntas y respuestas (original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 4: diálogo con las dos manos. La mano derecha hace una pregunta (frase
+// melódica) y la mano izquierda le responde repitiéndola en el registro grave.
+// Ninguna mano salta de su posición fija (DO central / DO grave). Es el primer
+// contacto con tocar "por turnos": las manos hacen de equipo.
+const PREGUNTAS_RESPUESTAS = {
+  id: 'preguntas-respuestas',
+  title: 'Preguntas y respuestas',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Do mayor',
+  emoji: '💬',
+  level: 4,
+  bpm: 76,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: la derecha pregunta
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
+      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
+      // compases 3–4: escucha la respuesta (silencio)
+      '&:1', '&:1', '&:1', '&:1',
+      '&:1', '&:1', '&:1', '&:1',
+      // compases 5–6: vuelve a preguntar
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'G4:1/5',
+      'E4:1/3', 'D4:1/2', 'C4:1/1', '&:1',
+      // compases 7–8: silencio final
+      '&:1', '&:1', '&:1', '&:1',
+      '&:1', '&:1', '&:1', '&:1',
+    ],
+    L: [
+      // compases 1–2: espera a que pregunte la derecha
+      '&:1', '&:1', '&:1', '&:1',
+      '&:1', '&:1', '&:1', '&:1',
+      // compases 3–4: la izquierda responde (eco grave)
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'G3:1/1',
+      'E3:1/3', 'D3:1/4', 'C3:1/5', '&:1',
+      // compases 5–6: escucha de nuevo
+      '&:1', '&:1', '&:1', '&:1',
+      '&:1', '&:1', '&:1', '&:1',
+      // compases 7–8: responde por última vez
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'G3:1/1',
+      'E3:1/3', 'D3:1/4', 'C3:2/5',
+    ],
+  },
+};
+
+// ── Vals de las nubes (original) · Do mayor · 3/4 · 8 compases ──
+// Nivel 4: primer vals. Mano derecha: melodía en negras. Mano izquierda:
+// acompañamiento de acordes de dos notas (fundamental + quinta) sostenidos un
+// compás entero, para introducir el ritmo de 3/4 y los acordes sencillos.
+const VALS_DE_LAS_NUBES = {
+  id: 'vals-de-las-nubes',
+  title: 'Vals de las nubes',
+  composer: 'Original',
+  subtitle: 'Nivel 4 · Vals · Do mayor',
+  emoji: '☁️',
+  level: 4,
+  bpm: 70,
+  beatsPerMeasure: 3,
+  totalBeats: 24,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      'C4:1/1', 'D4:1/2', 'E4:1/3',
+      'G4:1/5', 'F4:1/4', 'E4:1/3',
+      'D4:1/2', 'E4:1/3', 'D4:1/2',
+      'C4:2/1', 'D4:1/2',
+      'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'E4:1/3', 'D4:1/2', 'C4:1/1',
+      'D4:2/2', 'E4:1/3',
+      'C4:3/1',
+    ],
+    L: [
+      ['C3:3/5', 'G3:3/1'],
+      ['G3:3/1', 'D3:3/4'],
+      ['C3:3/5', 'G3:3/1'],
+      ['F3:3/2', 'C3:3/5'],
+      ['C3:3/5', 'G3:3/1'],
+      ['G3:3/1', 'D3:3/4'],
+      ['C3:3/5', 'G3:3/1'],
+      ['C3:3/5', 'G3:3/1'],
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──
@@ -425,6 +521,7 @@ function validateSongs(songs = SONGS) {
     if (s.level === 1 && !(hasR && !hasL)) problems.push(`${tag}: el nivel 1 debe ser sólo mano derecha (R)`);
     if (s.level === 2 && !(hasL && !hasR)) problems.push(`${tag}: el nivel 2 debe ser sólo mano izquierda (L)`);
     if (s.level === 3 && !(hasR && hasL)) problems.push(`${tag}: el nivel 3 debe tener las dos manos (R y L)`);
+    if (s.level === 4 && !(hasR && hasL)) problems.push(`${tag}: el nivel 4 debe tener las dos manos (R y L)`);
   }
   return problems;
 }
