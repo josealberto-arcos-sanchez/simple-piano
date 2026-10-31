@@ -21,6 +21,7 @@ Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 ### Desarrollo
 
 - [Probar en el ordenador](docs/probar-en-ordenador.md): ejecutar el servidor local y probar sin teclado.
+- [Pruebas automatizadas (agente)](docs/pruebas-automatizadas.md): cómo levantar el servidor local y probar la app con el navegador desde OpenCode.
 - [Estructura del proyecto](docs/estructura.md): qué hace cada fichero y carpeta.
 - [Cómo añadir una canción](docs/anadir-cancion.md): formato de `js/songs.js`, notas MIDI y digitación.
 - [Crear una Pull Request](docs/crear-pull-request.md): crear la PR con la API de GitHub sin `gh`.

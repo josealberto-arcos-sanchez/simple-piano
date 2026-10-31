@@ -25,26 +25,45 @@
     </header>
 
     <main class="home-main">
-      <div id="song-picker" class="song-picker"></div>
-      <div class="song-card">
-        <div class="song-info">
-          <h2 id="song-title">Himno de la Alegría</h2>
-          <p id="song-sub">L. van Beethoven · Nivel ⭐ · Do mayor</p>
+      <!-- ✦ Menú principal: todos los niveles, con sus estrellas -->
+      <div id="levels-view" class="levels-view">
+        <h2 class="levels-title">Elige un nivel</h2>
+        <p id="level-msg" class="level-msg"></p>
+        <div id="level-list" class="level-list"></div>
+      </div>
+
+      <!-- ✦ Detalle de un nivel: sus canciones -->
+      <div id="level-view" class="level-view hidden">
+        <div class="level-header">
+          <button id="btn-back-levels" class="round-btn" title="Volver a niveles">⬅️</button>
+          <div class="level-info">
+            <h2 id="level-title">Nivel 3</h2>
+            <p id="level-sub"></p>
+          </div>
+          <span id="level-stars" class="level-stars">⭐ 0/0</span>
         </div>
-        <div class="song-steps">
-          <button class="mode-btn listen" data-mode="listen">🔊 Escuchar<span class="mini" id="done-listen"></span></button>
-          <button class="mode-btn rh"     data-mode="rh">👉 Mano derecha<span class="mini stars" id="stars-rh">☆☆☆</span></button>
-          <button class="mode-btn lh"     data-mode="lh">👈 Mano izquierda<span class="mini stars" id="stars-lh">☆☆☆</span></button>
-          <button class="mode-btn both"   data-mode="both">✨ ¡Las dos manos!<span class="mini stars" id="stars-both">☆☆☆</span></button>
-          <button class="mode-btn free"   data-mode="free">🎵 ¡Toca libre!<span class="mini stars" id="stars-free">☆☆☆</span></button>
-        </div>
-        <div class="speed-row">
-          <span class="speed-label">Velocidad</span>
-          <button class="speed-btn" data-speed="0.7">🐢 Lenta</button>
-          <button class="speed-btn" data-speed="1">😊 Normal</button>
-          <button class="speed-btn" data-speed="1.4">🐇 Rápida</button>
+        <div id="song-picker" class="song-picker"></div>
+        <div class="song-card">
+          <div class="song-info">
+            <h2 id="song-title">Himno de la Alegría</h2>
+            <p id="song-sub">L. van Beethoven · Nivel 3 · Do mayor</p>
+          </div>
+          <div class="song-steps">
+            <button class="mode-btn listen" data-mode="listen">🔊 Escuchar<span class="mini" id="done-listen"></span></button>
+            <button class="mode-btn rh"     data-mode="rh">👉 Mano derecha<span class="mini stars" id="stars-rh">☆☆☆</span></button>
+            <button class="mode-btn lh"     data-mode="lh">👈 Mano izquierda<span class="mini stars" id="stars-lh">☆☆☆</span></button>
+            <button class="mode-btn both"   data-mode="both">✨ ¡Las dos manos!<span class="mini stars" id="stars-both">☆☆☆</span></button>
+            <button class="mode-btn free"   data-mode="free">🎵 ¡Toca libre!<span class="mini stars" id="stars-free">☆☆☆</span></button>
+          </div>
+          <div class="speed-row">
+            <span class="speed-label">Velocidad</span>
+            <button class="speed-btn" data-speed="0.7">🐢 Lenta</button>
+            <button class="speed-btn" data-speed="1">😊 Normal</button>
+            <button class="speed-btn" data-speed="1.4">🐇 Rápida</button>
+          </div>
         </div>
       </div>
+
       <p class="home-tip">El piano es tu teclado de verdad — la pantalla sólo te enseña qué tocar. 🎹</p>
     </main>
 
@@ -159,7 +178,7 @@
       </label>
       <button id="set-update" class="link-btn">🔄 Buscar actualización</button>
       <button id="set-reset" class="link-btn danger">🗑️ Borrar mi progreso</button>
-      <p class="version">Simple Piano v0.1 · prototipo</p>
+      <p class="version">Simple Piano v0.4.0 · prototipo</p>
     </div>
   </div>
 

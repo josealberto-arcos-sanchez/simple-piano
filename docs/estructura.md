@@ -12,5 +12,6 @@ js/game.js          Motor: notas que caen, modo espera, fase libre, velocidad, f
 js/app.js           Navegación, progreso por jugador, conexión, celebración
 manifest.json       PWA instalable
 sw.js               Cache offline
+scripts/serve.ps1      Mini servidor local en PowerShell (sin Python ni Node)
 scripts/gen-icons.ps1  Regenera los iconos PNG
 ```

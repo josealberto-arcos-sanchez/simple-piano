@@ -3,10 +3,18 @@
 0. Elige o crea tu **jugador**: toca el chip de jugador en la cabecera y
    selecciona tu cuenta (nombre + color). Cada jugador guarda sus propias
    estrellas. Ver [Perfiles de usuario](usuarios.md).
-1. Conecta el teclado de casa al tablet/móvil con el cable USB (en el teclado,
+1. **Niveles**: el menú principal muestra todos los niveles (1 👉 mano
+   derecha, 2 👈 mano izquierda, 3 ✨ las dos manos), todos **abiertos** desde
+   el principio. Cada nivel muestra las estrellas conseguidas por el jugador
+   (⭐ conseguidas / totales) y una barra de progreso; al completarlo del todo,
+   la tarjeta se corona 🏆.
+2. Conecta el teclado de casa al tablet/móvil con el cable USB (en el teclado,
    si hay menú USB, elige **MIDI**).
-2. Abre la app con **Chrome** (es el navegador que lee teclados MIDI en Android).
-3. Progresión: **Escuchar → Mano derecha → Mano izquierda → ¡Las dos manos! → 🎵 ¡Toca libre!**
+3. Abre la app con **Chrome** (es el navegador que lee teclados MIDI en Android).
+4. Progresión dentro de cada canción: **Escuchar → Mano derecha → Mano izquierda → ¡Las dos manos! → 🎵 ¡Toca libre!**
+   - En las canciones de una sola mano (niveles 1 y 2) sólo aparecen los modos
+     posibles: Escuchar · Mano derecha (o izquierda) · ¡Toca libre! El modo de
+     la mano que no participa se oculta.
    - Las teclas objetivo se iluminan con el número de dedo (👉 verde derecha, 👈 morado izquierda).
    - **Modo espera**: las notas frenan en la línea dorada y no avanzan hasta acertar. Sin reloj.
    - **¡Toca libre!** (fase 5): la canción avanza sin parar. Si tocas la nota mientras su
