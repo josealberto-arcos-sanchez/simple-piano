@@ -3,6 +3,14 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
+
+/* color del jugador activo (se rellena desde js/users.js) */
+:root {
+  --user-color: #f472b6;
+  --user-color-dark: #be185d;
+  --user-glow: rgba(244, 114, 182, 0.30);
+  --user-bg-tint: rgba(244, 114, 182, 0.16);
+}
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -27,7 +35,7 @@ body {
 /* ── INICIO ── */
 #screen-home {
   background:
-    radial-gradient(120% 90% at 20% 0%, #2b1d5c 0%, transparent 55%),
+    radial-gradient(120% 90% at 20% 0%, var(--user-bg-tint) 0%, transparent 55%),
     radial-gradient(120% 100% at 90% 100%, #1f3a5c 0%, transparent 50%),
     linear-gradient(160deg, #1b1532, #151226);
   align-items: center;
@@ -69,14 +77,15 @@ body {
 }
 .song-tab:active { transform: scale(0.95); }
 .song-tab.on {
-  background: linear-gradient(180deg, #fde68a, #fbbf24);
-  border-color: #fbbf24;
-  color: #3b2f0b;
+  background: linear-gradient(180deg, var(--user-color), var(--user-color-dark));
+  border-color: var(--user-color);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .song-card {
   width: min(560px, 96vw);
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--user-glow);
   border-radius: 24px;
   padding: 18px;
   backdrop-filter: blur(8px);
@@ -127,7 +136,7 @@ body {
   transition: transform 0.08s ease, filter 0.15s ease;
 }
 .speed-btn:active { transform: scale(0.94); }
-.speed-btn.on { background: linear-gradient(180deg, #fde68a, #fbbf24); border-color: #fbbf24; color: #3b2f0b; }
+.speed-btn.on { background: linear-gradient(180deg, var(--user-color), var(--user-color-dark)); border-color: var(--user-color); color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
 
 .home-tip { margin-top: 16px; color: #94a3b8; font-size: 14px; text-align: center; }
 .home-footer { width: 100%; text-align: center; padding: 14px; }
@@ -185,7 +194,7 @@ body {
   gap: 12px;
   padding: 10px 14px;
   background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid var(--user-color);
   min-height: 64px;
 }
 .game-center { flex: 1; text-align: center; min-width: 0; }
@@ -328,6 +337,11 @@ body {
 .big-btn.alt { background: rgba(255, 255, 255, 0.12); color: #e2e8f0; }
 
 /* ── victoria ── */
+/* Panel con el borde en el color del jugador activo */
+#win-overlay .panel {
+  border: 3px solid var(--user-color);
+  box-shadow: 0 0 18px var(--user-glow), 0 20px 60px rgba(0, 0, 0, 0.5);
+}
 .win-stars { font-size: clamp(40px, 9vw, 58px); display: flex; justify-content: center; gap: 6px; }
 .win-stars .star { opacity: 0.22; filter: grayscale(1); }
 .win-stars .star.on { opacity: 1; filter: none; }
@@ -350,3 +364,102 @@ body {
 }
 
 .version { color: #64748b; font-size: 12px; margin-top: 16px; }
+
+/* ── jugadores ── */
+.user-chip { display: inline-flex; align-items: center; gap: 6px; }
+.chip-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.4); }
+
+.game-user {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--user-color);
+  color: var(--user-color);
+  font-size: 13px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.06);
+  max-width: 30vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  color: #f8fafc;
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+.user-card.on { border-color: var(--user-color); box-shadow: 0 0 0 2px var(--user-glow); }
+.user-card:active { transform: scale(0.98); }
+.user-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: inset 0 -3px 8px rgba(0, 0, 0, 0.25);
+}
+.user-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.user-name { font-weight: 800; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-stars { font-size: 13px; color: #fde68a; }
+.mini-btn {
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  cursor: pointer;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.mini-btn.danger { background: rgba(239, 68, 68, 0.2); }
+.user-empty { color: #94a3b8; font-size: 14px; }
+
+.user-form { text-align: left; margin: 14px 0; }
+.user-form h3 { text-align: center; margin: 0 0 12px; color: #e2e8f0; }
+.user-name-label { display: block; font-size: 13px; font-weight: 700; color: #94a3b8; margin: 8px 0 4px; }
+.user-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  outline: none;
+}
+.user-input:focus { border-color: var(--user-color); }
+.user-color-label { margin: 12px 0 6px; font-size: 13px; font-weight: 700; color: #94a3b8; }
+.color-picker { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.color-swatch {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.15s ease;
+}
+.color-swatch.on { border-color: #fff; transform: scale(1.12); }
+.color-swatch:active { transform: scale(0.95); }
+.user-transfer {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+}
+.user-msg { margin: 10px 0 0; font-size: 13px; color: #a5b4fc; min-height: 18px; }

@@ -16,6 +16,7 @@ Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 - [Cómo funciona](docs/como-funciona.md): fases del juego, modo espera, velocidad y estrellas.
 - [Cable del teclado](docs/cable-teclado.md): tipos de conector y adaptadores necesarios.
 - [Notas técnicas](docs/notas-tecnicas.md): navegadores compatibles, sonido y pantalla encendida.
+- [Perfiles de usuario](docs/usuarios.md): cuentas locales por jugador, color de la interfaz y exportar/importar.
 
 ### Desarrollo
 

@@ -1,5 +1,8 @@
 # Cómo funciona
 
+0. Elige o crea tu **jugador**: toca el chip de jugador en la cabecera y
+   selecciona tu cuenta (nombre + color). Cada jugador guarda sus propias
+   estrellas. Ver [Perfiles de usuario](usuarios.md).
 1. Conecta el teclado de casa al tablet/móvil con el cable USB (en el teclado,
    si hay menú USB, elige **MIDI**).
 2. Abre la app con **Chrome** (es el navegador que lee teclados MIDI en Android).
