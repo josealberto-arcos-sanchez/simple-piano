@@ -486,7 +486,59 @@ const VALS_DE_LAS_NUBES = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES]
+// ── Cuando los santos marchan (Tradicional) · Do mayor · 4/4 · 8 compases ──
+// Nivel 4: clásico de jazz/gospel que cabe entero en las 5 notas fijas (DO–SOL).
+// Combina los dos retos del nivel: en los compases 1–2 la derecha lanza la
+// llamada ("Oh, when the saints...") y la izquierda le responde en eco grave;
+// a partir del compás 3 se unen como una banda, con acordes sencillos en la
+// mano izquierda (DO+SOL, RE+SOL, FA+DO) sosteniendo la melodía hasta el final.
+const CUANDO_LOS_SANTOS = {
+  id: 'cuando-los-santos',
+  title: 'Cuando los santos marchan',
+  composer: 'Tradicional',
+  subtitle: 'Nivel 4 · Do mayor',
+  emoji: '🎺',
+  level: 4,
+  bpm: 84,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compás 1: llamada de la trompeta (mano derecha)
+      'C4:1/1', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      // compás 2: escucha el eco de la mano izquierda
+      '&:4',
+      // compases 3–4: tercera llamada y semicadencia en RE
+      'C4:1/1', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'E4:1/3', 'C4:1/1', 'E4:1/3', 'D4:1/2',
+      // compases 5–6: giro hacia el subdominante (FA)
+      'E4:1/3', 'E4:1/3', 'D4:1/2', 'C4:1/1',
+      'C4:1/1', 'E4:1/3', 'G4:1/5', 'F4:1/4',
+      // compases 7–8: cierre triunfal en equipo
+      'E4:1/3', 'F4:1/4', 'G4:1/5', 'E4:1/3',
+      'C4:1/1', 'D4:1/2', 'C4:2/1',
+    ],
+    L: [
+      // compás 1: espera la llamada de la derecha
+      '&:4',
+      // compás 2: responde en eco en el registro grave
+      'C3:1/5', 'E3:1/3', 'F3:1/2', 'G3:1/1',
+      // compases 3–4: acordes de apoyo (I – V)
+      ['C3:4/5', 'G3:4/1'],
+      ['G3:4/1', 'D3:4/4'],
+      // compases 5–6: acordes de apoyo (I – IV)
+      ['C3:4/5', 'G3:4/1'],
+      ['F3:4/2', 'C3:4/5'],
+      // compases 7–8: cadencia final (I – V – I)
+      ['C3:2/5', 'G3:2/1'], 'G3:2/1',
+      'G3:2/1', ['C3:2/5', 'G3:2/1'],
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──

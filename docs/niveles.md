@@ -102,7 +102,8 @@ canción no las cumple.
 - **Modos que ofrece la app:** los cinco (igual que el nivel 3): Escuchar ·
   Mano derecha · Mano izquierda · ¡Las dos manos! · ¡Toca libre!
 - **Ejemplos de canciones:** *Preguntas y respuestas* (diálogo), *Vals de las
-  nubes* (3/4 con acordes en la izquierda).
+  nubes* (3/4 con acordes en la izquierda), *Cuando los santos marchan* (eco
+  entre manos y acordes de banda).
 
 ---
 
