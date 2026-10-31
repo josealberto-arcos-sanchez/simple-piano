@@ -31,7 +31,3 @@ Prototipo v0.1 · una canción: **Himno de la Alegría** (Beethoven, Do mayor).
 
 - [Publicar en GitHub Pages](docs/publicar-github-pages.md): subir el proyecto y activar Pages.
 - [Instalar como app en Android](docs/instalar-android.md): instalación PWA y uso sin internet.
-
-### Planificación
-
-- [Hoja de ruta](docs/hoja-de-ruta.md): versiones previstas y su contenido.
