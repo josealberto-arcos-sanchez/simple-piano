@@ -4,17 +4,14 @@
 > futuro. Recogen el flujo de pruebas que ya se ha usado con éxito y las trampas
 > encontradas, para no volver a tropezar con lo mismo.
 
-## 1. Entorno: sin Node ni Python
+## 1. Entorno: Linux + Node.js
 
-Este equipo **no tiene** `node`, `python` ni `py` reales (sólo existen los
-alias de la Microsoft Store, que fallan con *"no se encontró Python"*). Por eso:
+Este equipo tiene Ubuntu 22.04, Bash y Node.js (la versión está fijada en `.nvmrc`,
+20, la misma que el CI). Las dependencias se instalan con `npm ci`.
 
-- **No** intentes `node --check`, `python -m http.server`, `npx serve`, etc.
-- **Sí** existe un servidor estático en PowerShell puro: **`scripts/serve.ps1`**
-  (sin dependencias). Es el servidor local recomendado para este equipo.
-- En CI (GitHub Actions) se usa un servidor estático equivalente en Node:
-  **`scripts/serve.mjs`** (mismo comportamiento, multiplataforma).
-- **`scripts/check-sw.ps1`** (PowerShell puro) verifica la coherencia del Service
+- Servidor estático: **`scripts/serve.mjs`** (Node puro, sin dependencias). Es el
+  mismo que usa el CI, así que el comportamiento es idéntico en local y en GitHub.
+- **`scripts/check-sw.mjs`** (`npm run check`) verifica la coherencia del Service
   Worker: que `sw.js` lista todos los ficheros referenciados en `index.html`,
   los `import` de `js/` y los iconos de `manifest.json`, que `CORE` existe en
   disco y que el cache usa la misma versión que `js/version.js`. Útil tras
@@ -22,16 +19,14 @@ alias de la Microsoft Store, que fallan con *"no se encontró Python"*). Por eso
 
 ## 2. Levantar el servidor
 
-Desde la shell de OpenCode (que es PowerShell), ejecuta en **background**:
+Desde la shell de OpenCode, ejecuta en **background**:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\serve.ps1 -Port 8234
+```bash
+PORT=8234 npm run serve
 ```
 
-El puerto de pruebas por defecto es el `8234` (funciona sin permisos especiales;
-evita el `8123`, que Windows suele tener reservado por el sistema). Usa otro
-puerto si el `8234` ya está ocupado. Después abre la app con la herramienta de
-navegador:
+El puerto de pruebas es el `8234`. Si está ocupado, usa otro puerto cambiando
+`PORT`. Después abre la app con la herramienta de navegador:
 
 ```
 tools.browser.tabs.open({ url: 'http://127.0.0.1:8234/', focus: true })
@@ -42,8 +37,8 @@ tools.browser.tabs.open({ url: 'http://127.0.0.1:8234/', focus: true })
 
 ### 2.1. Cómo parar el servidor
 
-```powershell
-Stop-Process -Id (Get-NetTCPConnection -LocalPort 8234 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue
+```bash
+fuser -k 8234/tcp
 ```
 
 ## 3. Herramientas del navegador disponibles
@@ -121,12 +116,13 @@ await tools.browser.click({ tabID: tab, ref });
 Al tocar el código de niveles, comprueba con el navegador:
 
 - [ ] Menú principal: una tarjeta por nivel, todas abiertas (sin candados).
-- [ ] Estrellas por nivel correctas: Nivel 1 = 0/12, Nivel 2 = 0/12,
-      Nivel 3 = 0/48 (4 canciones × 12), Nivel 4 = 0/36 (3 canciones × 12).
+- [ ] Estrellas por nivel correctas (máximo = suma de sus canciones, 3 estrellas por
+      modo jugable): Nivel 1 = 0/36 (6 canciones), Nivel 2 = 0/36 (6 canciones),
+      Nivel 3 = 0/48 (4 canciones), Nivel 4 = 0/60 (5 canciones).
 - [ ] Nivel 1 sólo muestra Escuchar · Mano derecha · ¡Toca libre! (sin
       "Mano izquierda" ni "¡Las dos manos!").
 - [ ] Nivel 3 y Nivel 4 muestran los 5 modos.
-- [ ] Al completar un modo, las estrellas del nivel suben (p. ej. 2/12) y el
+- [ ] Al completar un modo, las estrellas del nivel suben (p. ej. 3/36) y el
       botón "Siguiente" salta al modo correcto (`rh → free` en canciones de
       una mano).
 - [ ] Tras `reload`, cada jugador vuelve a la misma vista (menú o detalle),
@@ -152,6 +148,14 @@ npx playwright install chromium
 npm test
 ```
 
-La lógica de verificación está en `tests/smoke.spec.js` y usa
-`@playwright/test` como única dependencia de desarrollo.
+La lógica de verificación está en `tests/` y usa `@playwright/test` como única
+dependencia de desarrollo:
+
+- `tests/smoke.spec.js`: abre `test.html` y exige que la suite pase al 100%.
+- `tests/niveles.spec.js`: recorre la app real (menú, modos por nivel, memoria tras
+  recargar, cambio de jugador y una partida completa con "Siguiente"). Bloquea el
+  service worker (`serviceWorkers: 'block'`) porque su recarga interrumpe los formularios.
+
+Los casos de la checklist de niveles (§7) que son lógica pura están en `test.html`
+(modos y "Siguiente" de todas las canciones, estrellas por nivel, progreso por jugador).
 

@@ -1,8 +1,7 @@
 # Probar en el ordenador (sin teclado)
 
-```powershell
-cd C:\jose_alberto\proyectos\simple-piano
-powershell -ExecutionPolicy Bypass -File scripts\serve.ps1
+```bash
+npm run serve
 ```
 
 Abre <http://127.0.0.1:8080>. En la pantalla de conexión, pulsa
@@ -14,7 +13,7 @@ Abre <http://127.0.0.1:8080>. En la pantalla de conexión, pulsa
 >   `file://`. Si abres `index.html` como archivo local, verás un aviso en
 >   pantalla (la app no arranca).
 > - Web MIDI y el service worker sólo funcionan en `http(s)`.
-> (Si tienes Python, también vale `python -m http.server 8080`.)
+> (Alternativa sin Node: `python3 -m http.server 8080`.)
 
 > **Actualizar desde una versión anterior:** si ya tenías la app abierta (service
 > worker cacheado) y al recargar se queda en blanco, haz una **recarga forzada**
@@ -22,5 +21,5 @@ Abre <http://127.0.0.1:8080>. En la pantalla de conexión, pulsa
 > Ajustes. La versión de caché sube con cada cambio de estructura.
 
 > Para **probar la app con el navegador desde OpenCode** (agente de IA), ver
-> [Pruebas automatizadas](pruebas-automatizadas.md): levantar `scripts/serve.ps1`
+> [Pruebas automatizadas](pruebas-automatizadas.md): levantar `npm run serve`
 > en background y usar las herramientas `browser.*` (snapshot, click, press…).

@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "serve": "node scripts/serve.mjs",
+    "check": "node scripts/check-sw.mjs",
+    "icons": "node scripts/gen-icons.mjs",
+    "pr": "node scripts/create-pr.mjs",
     "test": "playwright test"
   },
   "devDependencies": {
