@@ -347,6 +347,58 @@ suite('Progreso y vista por jugador', () => {
   });
 });
 
+// ── G. Manos guía sobre el teclado (renderizador) ──
+suite('Manos guía sobre el teclado', () => {
+  // Modos de una sola mano sólo muestran esa mano; los demás, las manos que tocan en la canción.
+  const handsOf = (song, mode) => {
+    const want = mode === 'rh' ? [R] : mode === 'lh' ? [L] : [R, L];
+    return song.notes.filter((n) => want.includes(n.h)).map((n) => n.h);
+  };
+  const expectedHands = (song, mode) => [...new Set(handsOf(song, mode))].sort();
+  function handsFor(song, mode) {
+    Game.start(song, mode, { progress() {}, finish() {} }, 1);
+    const hands = Game._hands();
+    Game.stop();
+    return hands;
+  }
+
+  test('cada modo y canción dibuja sólo las manos que tocan en esa fase', () => {
+    for (const song of SONGS) {
+      for (const mode of Progression.availableModes(song)) {
+        const got = handsFor(song, mode).map((h) => h.hand).sort();
+        const want = expectedHands(song, mode);
+        assert(JSON.stringify(got) === JSON.stringify(want),
+          `${song.id} · ${mode}: manos ${JSON.stringify(got)}, debían ser ${JSON.stringify(want)}`);
+      }
+    }
+  });
+  test('cada mano tiene 5 dedos en teclas blancas consecutivas (pulgar a la derecha en R, meñique en L)', () => {
+    for (const song of SONGS) {
+      for (const hand of handsFor(song, 'listen')) {
+        const f = hand.fingers;
+        assert(f.length === 5, `${song.id}: ${hand.hand} sin 5 dedos`);
+        const xs = f.map((g) => g.x);
+        const ascending = xs.every((x, i) => i === 0 || x > xs[i - 1]);
+        assert(hand.hand === 'R' ? ascending : !ascending, `${song.id}: orden de dedos incorrecto en ${hand.hand}`);
+        for (let i = 1; i < 5; i++) {
+          assert(Math.abs(f[i].midi - f[i - 1].midi) > 0, `${song.id}: teclas repetidas en ${hand.hand}`);
+        }
+      }
+    }
+  });
+  test('cada nota cae bajo el dedo que la toca', () => {
+    for (const song of SONGS) {
+      const hands = handsFor(song, 'listen');
+      for (const n of song.notes) {
+        const hand = hands.find((h) => h.hand === n.h);
+        const g = hand && hand.fingers.find((x) => x.f === n.f);
+        assert(g && g.midi === n.m,
+          `${song.id}: ${n.h}${n.f} debía estar sobre la tecla ${n.m} y está sobre ${g ? g.midi : 'nada'}`);
+      }
+    }
+  });
+});
+
 // ── render de resultados ──
 function render() {
   const host = document.getElementById('results');
