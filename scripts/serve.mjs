@@ -1,5 +1,4 @@
 // Mini servidor estático multiplataforma (Node puro, sin dependencias).
-// Replica el comportamiento de scripts/serve.ps1 pero para CI/Linux/macOS.
 // Uso:  node scripts/serve.mjs  (p. ej. PORT=8080)
 import http from 'node:http';
 import fs from 'node:fs';
@@ -50,6 +49,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': mime[ext] || 'application/octet-stream',
       'Content-Length': st.size,
+      // Desarrollo: el navegador revalida siempre para no servir módulos viejos al editar.
+      'Cache-Control': 'no-cache',
     });
     fs.createReadStream(file).pipe(res);
   });

@@ -25,7 +25,7 @@ Prototipo v0.10.0 · cuatro niveles (mano derecha, mano izquierda, las dos manos
 - [Pruebas automatizadas (agente)](docs/pruebas-automatizadas.md): cómo levantar el servidor local y probar la app con el navegador desde OpenCode.
 - [Estructura del proyecto](docs/estructura.md): qué hace cada fichero y carpeta.
 - [Cómo añadir una canción](docs/anadir-cancion.md): formato de `js/songs.js`, notas MIDI y digitación.
-- [Crear una Pull Request](docs/crear-pull-request.md): crear la PR con la API de GitHub sin `gh`.
+- [Crear una Pull Request](docs/crear-pull-request.md): crear la PR con la API de GitHub (sin el comando `gh` para crearla).
 - [Documento de diseño](docs/diseno.md): decisiones pedagógicas, arquitectura y preguntas abiertas.
 
 ### Publicación

@@ -2,8 +2,8 @@
 
 1. Crea un repositorio en GitHub (p. ej. `simple-piano`) — **público** (Pages gratis no funciona en privados en cuentas gratuitas).
 2. Sube el proyecto:
-   ```powershell
-   cd C:\jose_alberto\proyectos\simple-piano
+   ```bash
+   cd /home/jarcossa/code/proyectos/simple-piano
    git init
    git add -A
    git commit -m "Simple Piano v0.1"

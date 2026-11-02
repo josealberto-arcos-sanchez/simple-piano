@@ -44,7 +44,7 @@
 import { Game } from './js/game.js';
 import { Users } from './js/users.js';
 import { Progression } from './js/progression.js';
-import { SONGS, LEVELS, validateSongs } from './js/songs.js';
+import { SONGS, LEVELS, R, L, validateSongs } from './js/songs.js';
 
 // ── mini marco de pruebas (simple, sin dependencias) ──
 const suites = [];
@@ -150,11 +150,20 @@ suite('Catálogo de canciones', () => {
 
 // ── C. Progresión: modos y estrellas por nivel ──
 suite('Progresión: modos y estrellas', () => {
-  test('estrellas máximas por nivel', () => {
-    assert(Progression.maxStarsOfLevel(1) === 36, 'Nivel 1 debía ser 36');
-    assert(Progression.maxStarsOfLevel(2) === 36, 'Nivel 2 debía ser 36');
-    assert(Progression.maxStarsOfLevel(3) === 48, 'Nivel 3 debía ser 48');
-    assert(Progression.maxStarsOfLevel(4) === 60, 'Nivel 4 debía ser 60');
+  test('estrellas máximas por nivel = suma de sus canciones', () => {
+    // Cada modo jugable (derecha, izquierda, dos manos, libre) da hasta 3 estrellas.
+    // Escuchar no da estrellas. Los modos dependen de las manos de cada canción.
+    const starsOfSong = (s) => {
+      const hasR = s.notes.some((n) => n.h === R);
+      const hasL = s.notes.some((n) => n.h === L);
+      const modes = 1 + (hasR ? 1 : 0) + (hasL ? 1 : 0) + (hasR && hasL ? 1 : 0);
+      return modes * 3;
+    };
+    LEVELS.forEach((l) => {
+      const esperado = SONGS.filter((s) => s.level === l.id).reduce((acc, s) => acc + starsOfSong(s), 0);
+      const real = Progression.maxStarsOfLevel(l.id);
+      assert(real === esperado, `nivel ${l.id}: esperaba ${esperado} estrellas, hay ${real}`);
+    });
   });
   test('modos disponibles según las manos', () => {
     const lvl1 = SONGS.find((s) => s.level === 1);
@@ -251,6 +260,91 @@ suite('Simulación de partidas completas (Game._step)', () => {
       });
     }
   }
+});
+
+// ── E. Modos por nivel (todas las canciones) ──
+suite('Niveles: modos por canción', () => {
+  // Niveles 1 y 2: una sola mano (escuchar · su mano · libre).
+  // Niveles 3 y 4: dos manos (los cinco modos).
+  const esperado = {
+    1: ['listen', 'rh', 'free'],
+    2: ['listen', 'lh', 'free'],
+    3: ['listen', 'rh', 'lh', 'both', 'free'],
+    4: ['listen', 'rh', 'lh', 'both', 'free'],
+  };
+  test('cada canción ofrece los modos de su nivel', () => {
+    for (const s of SONGS) {
+      const got = JSON.stringify(Progression.availableModes(s));
+      const want = JSON.stringify(esperado[s.level]);
+      assert(got === want, `${s.id}: modos ${got}, debía ser ${want}`);
+    }
+  });
+  test('Siguiente recorre los modos de cada canción y termina en libre', () => {
+    for (const s of SONGS) {
+      const modos = Progression.availableModes(s).filter((m) => m !== 'listen');
+      for (let i = 0; i < modos.length; i++) {
+        const want = i < modos.length - 1 ? modos[i + 1] : null;
+        const next = Progression.nextMode(modos[i], s);
+        assert(next === want, `${s.id}: después de ${modos[i]} debía ir a ${want}, va a ${next}`);
+      }
+    }
+  });
+  test('cada nivel tiene canciones y estrellas que ganar', () => {
+    LEVELS.forEach((l) => {
+      assert(Progression.songsOfLevel(l.id).length > 0, `nivel ${l.id} sin canciones`);
+      assert(Progression.maxStarsOfLevel(l.id) > 0, `nivel ${l.id} sin estrellas`);
+    });
+  });
+});
+
+// ── F. Progreso y vista por jugador ──
+suite('Progreso y vista por jugador', () => {
+  const byId = (id) => Users.all().find((x) => x.id === id);
+  function withTwoUsers(fn) {
+    const a = Users.createUser('TmpA', 'rosa');
+    const b = Users.createUser('TmpB', 'azul');
+    try { fn(a, b); } finally { Users.deleteUser(a.id); Users.deleteUser(b.id); }
+  }
+  const firstOfLevel1 = () => SONGS.find((s) => s.level === 1);
+
+  test('el progreso de un jugador no pasa a otro', () => {
+    withTwoUsers((a, b) => {
+      const song = firstOfLevel1();
+      Users.recordProgress(a.id, song.id, 'rh', 3);
+      assert(Progression.userStarsOfLevel(byId(b.id), 1) === 0, 'el segundo jugador no debe tener estrellas');
+    });
+  });
+  test('al completar un modo suben las estrellas del nivel', () => {
+    withTwoUsers((a) => {
+      const song = firstOfLevel1();
+      Users.recordProgress(a.id, song.id, 'rh', 3);
+      assert(Progression.userStarsOfLevel(byId(a.id), 1) === 3, 'tras derecha debía haber 3');
+      Users.recordProgress(a.id, song.id, 'free', 2);
+      assert(Progression.userStarsOfLevel(byId(a.id), 1) === 5, 'tras libre debía haber 5');
+    });
+  });
+  test('cada jugador guarda su vista, nivel y canción por separado', () => {
+    withTwoUsers((a, b) => {
+      const song = SONGS.find((s) => s.level === 2);
+      Users.setPrefs(a.id, { view: 'song', levelId: 2, songId: song.id });
+      Users.setPrefs(b.id, { view: 'levels', levelId: 4 });
+      Users.selectUser(a.id);
+      let p = Users.active().prefs;
+      assert(p.view === 'song' && p.levelId === 2 && p.songId === song.id, 'jugador A debía recordar su vista');
+      Users.selectUser(b.id);
+      p = Users.active().prefs;
+      assert(p.view === 'levels' && p.levelId === 4, 'jugador B debía recordar su vista');
+    });
+  });
+  test('las preferencias quedan guardadas en localStorage', () => {
+    withTwoUsers((a) => {
+      Users.setPrefs(a.id, { view: 'level', levelId: 3 });
+      const raw = JSON.parse(localStorage.getItem('simple-piano-users-v1'));
+      const guardado = raw.users.find((x) => x.id === a.id);
+      assert(guardado && guardado.prefs.view === 'level' && guardado.prefs.levelId === 3,
+        'las preferencias no están en localStorage');
+    });
+  });
 });
 
 // ── render de resultados ──
