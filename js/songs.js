@@ -515,6 +515,135 @@ const RONDA_SOL = {
   },
 };
 
+// ── Debajo un botón (Popular) · Do mayor · 4/4 · 8 compases ──
+// Nivel 2: mano izquierda SOLA, posición fija de Do grave (48–55).
+// Clásico infantil que recorre los 5 dedos (5–4–3–2–1) y juega con el ritmo «ton, ton, ton».
+const DEBAJO_UN_BOTON = {
+  id: 'debajo-un-boton',
+  title: 'Debajo un botón',
+  composer: 'Popular',
+  subtitle: 'Nivel 2 · Mano izquierda · Do mayor',
+  emoji: '🔘',
+  bpm: 80,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 2,
+  notes: {
+    L: [
+      // compases 1–2: «De-ba-jo un bo-tón, ton, ton» (8 pulsos)
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'F3:1/2',
+      'G3:1/1', 'G3:1/1', 'G3:2/1',
+      // compases 3–4: «que en-con-tró Mar-tín, tín, tín» (8 pulsos)
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'F3:1/2',
+      'G3:1/1', 'G3:1/1', 'G3:2/1',
+      // compases 5–6: «ha-bí-a un ra-tón, ton, ton» (8 pulsos)
+      'F3:1/2', 'E3:1/3', 'D3:1/4', 'E3:1/3',
+      'F3:1/2', 'F3:1/2', 'F3:2/2',
+      // compases 7–8: «ay qué chi-qui-tín, tín, tín» (8 pulsos) → total 32
+      'E3:1/3', 'D3:1/4', 'C3:1/5', 'D3:1/4',
+      'C3:1/5', 'C3:1/5', 'C3:2/5',
+    ],
+  },
+};
+
+// ── Canción del bosque / Go Tell Aunt Rhody (Tradicional) · Do mayor · 4/4 · 8 compases ──
+// Nivel 2: mano izquierda SOLA, posición fija de Do grave (48–55).
+// Melodía suave y cantabile que combina blancas y negras y refuerza los dedos centrales (4–3–2).
+const CANCION_DEL_BOSQUE = {
+  id: 'cancion-del-bosque',
+  title: 'Canción del bosque',
+  composer: 'Tradicional',
+  subtitle: 'Nivel 2 · Mano izquierda · Do mayor',
+  emoji: '🌲',
+  bpm: 74,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 2,
+  notes: {
+    L: [
+      // compases 1–2 (8 pulsos)
+      'E3:2/3', 'E3:1/3', 'D3:1/4',
+      'C3:2/5', 'C3:2/5',
+      // compases 3–4 (8 pulsos)
+      'D3:2/4', 'D3:1/4', 'F3:1/2',
+      'E3:1/3', 'D3:1/4', 'C3:2/5',
+      // compases 5–6 (8 pulsos)
+      'G3:2/1', 'G3:1/1', 'F3:1/2',
+      'E3:2/3', 'E3:2/3',
+      // compases 7–8 (8 pulsos) → total 32
+      'D3:1/4', 'E3:1/3', 'F3:1/2', 'D3:1/4',
+      'C3:4/5',
+    ],
+  },
+};
+
+// ── Pasos de gigante (Original) · Do mayor · 4/4 · 6 compases ──
+// Nivel 2: mano izquierda SOLA, posición fija de Do grave (48–55).
+// Juega con silencios de negra (&:1), blancas y saltos de tercera en el registro grave.
+const PASOS_DE_GIGANTE = {
+  id: 'pasos-de-gigante',
+  title: 'Pasos de gigante',
+  composer: 'Original',
+  subtitle: 'Nivel 2 · Mano izquierda · Do mayor',
+  emoji: '🦶',
+  bpm: 68,
+  beatsPerMeasure: 4,
+  totalBeats: 24,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 2,
+  notes: {
+    L: [
+      // compases 1–2: pisadas graves en arpegio con silencios (8 pulsos)
+      'C3:1/5', '&:1', 'E3:1/3', '&:1',
+      'G3:2/1', 'C3:2/5',
+      // compases 3–4: avanza por los dedos 4 y 2 (8 pulsos)
+      'D3:1/4', '&:1', 'F3:1/2', '&:1',
+      'E3:2/3', 'G3:2/1',
+      // compases 5–6: baja paso a paso desde el pulgar hasta el meñique (8 pulsos) → total 24
+      'G3:1/1', 'F3:1/2', 'E3:1/3', 'D3:1/4',
+      'C3:4/5',
+    ],
+  },
+};
+
+// ── El eco de la cueva (Original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 2: mano izquierda SOLA, posición fija de Do grave (48–55).
+// Alterna llamadas en el pulgar (SOL3) con ecos en el meñique (DO3) y escalas de 5 dedos.
+const ECO_DE_LA_CUEVA = {
+  id: 'eco-de-la-cueva',
+  title: 'El eco de la cueva',
+  composer: 'Original',
+  subtitle: 'Nivel 2 · Mano izquierda · Do mayor',
+  emoji: '🦇',
+  bpm: 78,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,
+  whiteTo: 72,
+  level: 2,
+  notes: {
+    L: [
+      // compases 1–2: llamada arriba (1–3–1) y eco abajo (5–3–5) (8 pulsos)
+      'G3:1/1', 'E3:1/3', 'G3:1/1', '&:1',
+      'C3:1/5', 'E3:1/3', 'C3:2/5',
+      // compases 3–4: llamada con dedos 2–4 y reposo en RE (8 pulsos)
+      'F3:1/2', 'D3:1/4', 'F3:1/2', '&:1',
+      'G3:1/1', 'E3:1/3', 'D3:2/4',
+      // compases 5–6: sube toda la escalera desde el meñique (8 pulsos)
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'F3:1/2',
+      'G3:2/1', 'E3:2/3',
+      // compases 7–8: cierre en tónica (8 pulsos) → total 32
+      'F3:1/2', 'E3:1/3', 'D3:1/4', 'G3:1/1',
+      'C3:4/5',
+    ],
+  },
+};
+
 // ── Preguntas y respuestas (original) · Do mayor · 4/4 · 8 compases ──
 // Nivel 4: diálogo entre las dos manos. En los compases 1–6 la mano derecha
 // lanza tres preguntas distintas y la izquierda le responde en el registro
@@ -760,7 +889,7 @@ const FAROL_DE_LA_LUNA = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA]
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, DEBAJO_UN_BOTON, CANCION_DEL_BOSQUE, PASOS_DE_GIGANTE, ECO_DE_LA_CUEVA, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──

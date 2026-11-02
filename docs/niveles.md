@@ -55,7 +55,7 @@ canción no las cumple.
   reforzando la simetría y la lectura de la clave de Fa (mano izquierda).
 - **Modos que ofrece la app:** Escuchar · Mano izquierda · ¡Toca libre! (la mano
   derecha se oculta).
-- **Ejemplos de canciones:** *El tren de madera*, *La ronda del sol*.
+- **Ejemplos de canciones:** *El tren de madera*, *La ronda del sol*, *Debajo un botón*, *Canción del bosque*, *Pasos de gigante*, *El eco de la cueva*.
 
 ---
 
