@@ -26,6 +26,9 @@
    - **Velocidad** 🐢 lenta (×0,7) · 😊 normal · 🐇 rápida (×1,4): se elige en la pantalla
      de inicio o con el botón redondo del juego, y afecta a todas las fases.
    - Error = la tecla parpadea en rojo suave. Nada se pierde nunca.
+    - **Manos guía**: sobre el teclado se ven las manos colocadas en su sitio (sin moverse).
+      En 🔊 Escuchar se ven destacadas y el dedo que suena se mueve y se ilumina; en el
+      resto de modos son una guía sutil y el dedo de la nota pendiente lleva su badge en la yema.
    - **Volver a empezar** 🔁 (botón del juego): reinicia la canción actual desde el principio,
       por si quiere repetirla perfecta. Disponible en todas las fases.
    - Al terminar: estrellas (0 errores = 3⭐) y confeti.

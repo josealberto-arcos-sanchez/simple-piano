@@ -68,7 +68,9 @@ const Game = (() => {
 
   window.addEventListener('resize', () => { if (running) resize(); });
 
-  return { start, stop, noteon, noteoff, tap, resize, setSpeed, resetInput, _dbg, _step: step };
+  function _hands() { return renderer ? renderer._hands() : []; }
+
+  return { start, stop, noteon, noteoff, tap, resize, setSpeed, resetInput, _dbg, _hands, _step: step };
 })();
 
 export { Game };

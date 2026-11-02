@@ -18,6 +18,8 @@ const GameRenderer = (canvas, engine) => {
   const RED = cssVar('--color-red', '#ef4444');
   const BLACK_SET = new Set([1, 3, 6, 8, 10]); // midi % 12 → tecla negra
   const HIT_FADE = 0.6;      // s del destello dorado (coincide con el motor)
+  // Altura de la yema de cada dedo (fracción de kb.h desde arriba del teclado): el corazón llega más alto.
+  const FINGER_TIP = { 1: 0.52, 2: 0.41, 3: 0.36, 4: 0.41, 5: 0.48 };
 
   let ctx = canvas.getContext('2d'), W = 0, H = 0;
   let kb = null;                    // geometría del teclado guía
@@ -65,6 +67,33 @@ const GameRenderer = (canvas, engine) => {
       let prevI = 0;
       for (let k = 0; k < whites.length; k++) { if (whites[k] < m) prevI = k; else break; }
       xCache.set(m, (prevI + 1) * kb.kw);
+    }
+    computeHands();
+  }
+
+  // Posición de cada mano: sus 5 dedos apoyados en 5 teclas blancas consecutivas.
+  // Se toma la posición más frecuente de las notas de esa mano en la partida.
+  function computeHands() {
+    const whites = kb.whitesMidi;
+    kb.hands = [];
+    for (const h of ['R', 'L']) {
+      const votes = new Map();
+      for (const n of engine.state.notesVis) {
+        if (n.h !== h) continue;
+        const i = keyIndex.get(n.m);
+        if (i === undefined) continue;
+        const i0 = h === 'R' ? i - (n.f - 1) : i - (5 - n.f);
+        votes.set(i0, (votes.get(i0) || 0) + 1);
+      }
+      if (!votes.size) continue;
+      let start = 0, best = -1;
+      for (const [i0, c] of votes) if (c > best) { start = i0; best = c; }
+      start = Math.max(0, Math.min(whites.length - 5, start));
+      const fingers = [1, 2, 3, 4, 5].map((f) => {
+        const midi = whites[start + (h === 'R' ? f - 1 : 5 - f)];
+        return { f, midi, x: keyX(midi) };
+      });
+      kb.hands.push({ hand: h, fingers });
     }
   }
 
@@ -140,6 +169,7 @@ const GameRenderer = (canvas, engine) => {
     drawNotes(st, now);
     drawHitLine(st);
     drawKeyboard(st, now);
+    drawHands(st, now);
     drawParticles();
     if (st.countdown > 0) drawCountdown(st);
     else if (st.songBeat < 0) drawReady(st);
@@ -311,13 +341,73 @@ const GameRenderer = (canvas, engine) => {
       roundRect(x, kb.y, w, kb.h * 0.62, 4);
       ctx.fill();
     }
-    // badge con el número de dedo sobre la tecla objetivo
+    // borde superior del teclado
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(0, kb.y, W, 2);
+  }
+
+  // Manos guía sobre el teclado. En 🔊 Escuchar se destacan y se animan los dedos que
+  // suenan; en el resto de modos son una marca de agua y el dedo de la nota pendiente
+  // lleva su badge en la yema.
+  function drawHands(st, now) {
+    const listen = st.mode === 'listen';
+    const active = new Set();   // `${mano}${dedo}` de las notas que suenan (escuchar) o pendientes
+    if (listen) {
+      for (const n of st.notesVis) if (n.b <= st.songBeat && st.songBeat < n.b + n.d) active.add(n.h + n.f);
+    } else if (st.pending) {
+      for (const n of st.pending.ev.notes) if (!st.pending.got.has(n.m)) active.add(n.h + n.f);
+    }
+    const drawn = new Set();
+    const palmY = kb.y + kb.h * 0.68, baseY = kb.y + kb.h;
+    const w = kb.kw * 0.5;
+    for (const hand of kb.hands) {
+      const c = HAND[hand.hand].fill;
+      const xs = hand.fingers.map((g) => g.x);
+      const x0 = Math.min(...xs) - w / 2, x1 = Math.max(...xs) + w / 2;
+      ctx.globalAlpha = listen ? 0.22 : 0.10;
+      ctx.fillStyle = c;
+      roundRect(x0, palmY, x1 - x0, baseY - palmY + w, w / 2);
+      ctx.fill();
+      for (const g of hand.fingers) {
+        const isAct = active.has(hand.hand + g.f);
+        const pressed = st.pressed.has(g.midi);
+        const tipY = kb.y + kb.h * FINGER_TIP[g.f] + (isAct || pressed ? 3 : 0);
+        const len = palmY - tipY + w / 2;
+        ctx.globalAlpha = listen ? (isAct ? 0.55 : 0.22) : (isAct || pressed ? 0.3 : 0.10);
+        ctx.fillStyle = c;
+        roundRect(g.x - w / 2, tipY, w, len, w / 2);
+        ctx.fill();
+        ctx.globalAlpha = listen ? 0.6 : 0.3;
+        ctx.strokeStyle = isAct ? '#ffffff' : c;
+        ctx.lineWidth = isAct ? 2.5 : 1.5;
+        roundRect(g.x - w / 2, tipY, w, len, w / 2);
+        ctx.stroke();
+        // número de dedo en la yema (badge iluminado si es el que suena o el pendiente)
+        const y = tipY + w / 2;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (isAct) {
+          const r = Math.max(10, w * 0.42) * (1 + Math.sin(now * 6) * 0.06);
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = c;
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.arc(g.x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          drawn.add(hand.hand + g.f);
+        }
+        ctx.globalAlpha = isAct ? 1 : (listen ? 0.9 : 0.35);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `800 ${Math.max(10, w * 0.5)}px system-ui, sans-serif`;
+        ctx.fillText(g.f, g.x, y + 1);
+      }
+    }
+    // notas pendientes sin dedo en ninguna mano dibujada (p. ej. tecla negra): badge sobre la tecla
     if (st.pending) {
       for (const n of st.pending.ev.notes) {
-        if (st.pending.got.has(n.m)) continue;
+        if (st.pending.got.has(n.m) || drawn.has(n.h + n.f)) continue;
         const x = keyX(n.m);
         const y = kb.y + kb.h * (isBlack(n.m) ? 0.30 : 0.42);
         const r = Math.max(11, kb.kw * 0.26) * (1 + Math.sin(now * 6) * 0.06);
+        ctx.globalAlpha = 1;
         ctx.fillStyle = HAND[n.h].fill;
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2.5;
@@ -328,9 +418,7 @@ const GameRenderer = (canvas, engine) => {
         ctx.fillText(n.f, x, y + 1);
       }
     }
-    // borde superior del teclado
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.fillRect(0, kb.y, W, 2);
+    ctx.globalAlpha = 1;
   }
 
   function drawParticles() {
@@ -366,7 +454,7 @@ const GameRenderer = (canvas, engine) => {
     return { W: W.toFixed(0), H: H.toFixed(0) };
   }
 
-  return { resize, draw, _size };
+  return { resize, draw, _size, _hands: () => (kb ? kb.hands : []) };
 };
 
 export { GameRenderer };
