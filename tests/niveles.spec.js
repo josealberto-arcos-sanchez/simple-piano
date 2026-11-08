@@ -55,8 +55,8 @@ test('menú principal: una tarjeta por nivel, todas abiertas, con sus estrellas 
   await primerJugador(page, 'Ana');
 
   const tarjetas = page.locator('#level-list .level-card');
-  await expect(tarjetas).toHaveCount(4);
-  for (let i = 0; i < 4; i++) {
+  await expect(tarjetas).toHaveCount(5);
+  for (let i = 0; i < 5; i++) {
     await expect(tarjetas.nth(i)).toBeEnabled();
   }
   await expect(page.locator('#level-list .level-score')).toHaveText([
@@ -64,11 +64,12 @@ test('menú principal: una tarjeta por nivel, todas abiertas, con sus estrellas 
     '⭐ 0 / 36',
     '⭐ 0 / 48',
     '⭐ 0 / 60',
+    '⭐ 0 / 60',
   ]);
   expect(errores).toEqual([]);
 });
 
-test('cada nivel muestra sus modos: 1 y 2 una mano, 3 y 4 dos manos', async ({ page }) => {
+test('cada nivel muestra sus modos: 1 y 2 una mano, 3, 4 y 5 dos manos', async ({ page }) => {
   const errores = vigilarErrores(page);
   await page.goto('/');
   await primerJugador(page, 'Ana');
@@ -76,6 +77,7 @@ test('cada nivel muestra sus modos: 1 y 2 una mano, 3 y 4 dos manos', async ({ p
   const esperado = [
     ['listen', 'rh', 'free'],
     ['listen', 'lh', 'free'],
+    ['listen', 'rh', 'lh', 'both', 'free'],
     ['listen', 'rh', 'lh', 'both', 'free'],
     ['listen', 'rh', 'lh', 'both', 'free'],
   ];
