@@ -20,6 +20,7 @@ canción no las cumple.
 | 2 | 👈 | Mano izquierda | Sólo izquierda, fija | Tocar con la mano izquierda (dedos 5–1) |
 | 3 | ✨ | Las dos manos | Ambas manos, fijas | Coordinar las dos manos a la vez |
 | 4 | 🤝 | Manos en equipo | Ambas manos, fijas | Manos como equipo: diálogo, acordes sencillos y ritmos nuevos |
+| 5 | 🎵 | Ritmo vivo | Ambas manos, fijas | Primeras corcheas, la izquierda también canta y el acompañamiento se mueve |
 
 > **Regla común a todos los niveles:** las manos **no se mueven de su sitio**
 > (posición fija de 5 dedos). El movimiento del teclado es un paso posterior y
@@ -104,7 +105,37 @@ canción no las cumple.
 - **Ejemplos de canciones:** *Preguntas y respuestas* (diálogo), *El puente de
   amigos* (pregunta-respuesta con acordes en la izquierda), *Vals de las nubes*
   (3/4 con acordes en la izquierda), *Cuando los santos marchan* (eco entre manos
-  y acordes de banda).
+  y acordes de banda), *Farol de la luna* (vals en espejo).
+
+---
+
+## Nivel 5 · 🎵 Ritmo vivo
+
+- **Descripción en la app:** «Las dos manos ganan ritmo: aparecen las primeras
+  notas rápidas (corcheas), la izquierda también canta la melodía y el
+  acompañamiento se mueve, sin cambiar las manos de sitio.»
+- **Manos que participan:** las dos (`h: R` **y** `h: L`).
+- **Regla de posición (validación):** la canción **debe** tener notas de ambas
+  manos y al menos una nota con duración `< 1` (corchea).
+- **Dónde tocan:** siguen en posición fija: derecha en DO4–SOL4 (60–67),
+  izquierda en DO3–SOL3 (48–55). **Todavía no se mueven del sitio.**
+- **Qué introduce (respecto al nivel 4):**
+  - **Primeras corcheas (`d: 0.5`) y negras con puntillo (`d: 1.5`):** motivos
+    cortos y cantables (*ti-ti ta* o *ta-a ti*) por grados conjuntos.
+  - **Papeles cambiados:** pasajes donde la **mano izquierda canta la melodía** y
+    la mano derecha acompaña con notas largas o acordes sencillos de dos notas.
+  - **Acompañamiento en movimiento:** la mano que acompaña marca pulso alternando
+    notas (blancas DO–SOL o patrón de vals *bajo + quinta*) en lugar de quedarse
+    quieta todo el compás.
+- **Objetivo pedagógico:** ganar agilidad rítmica e independencia real entre las
+  dos manos (cualquiera puede cantar o acompañar), aprovechando la seguridad de
+  la posición fija de 5 dedos.
+- **Modos que ofrece la app:** los cinco (igual que los niveles 3 y 4): Escuchar ·
+  Mano derecha · Mano izquierda · ¡Las dos manos! · ¡Toca libre!
+- **Ejemplos de canciones:** *Campanero* (canon y primeras corcheas), *El expreso
+  del sol* (bajo de tren en blancas y cambio de papeles), *El reloj saltarín*
+  (pulso tic-tac frente a corcheas en ambas manos), *Tiovivo de feria* (vals con
+  bajo en movimiento), *Pequeña serenata* (negra con puntillo + corchea).
 
 ---
 
@@ -120,6 +151,7 @@ ids únicos, nivel existente), la coherencia de manos con el nivel:
 | 2 | Sólo mano izquierda (`L`) |
 | 3 | Las dos manos (`R` y `L`) |
 | 4 | Las dos manos (`R` y `L`) |
+| 5 | Las dos manos (`R` y `L`) y al menos una corchea (`d < 1`) |
 
 Para añadir un nivel nuevo en el futuro: añade un objeto a `LEVELS` y, si tiene
 una regla de manos propia, una comprobación nueva en `validateSongs()`. Un nivel

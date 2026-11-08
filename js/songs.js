@@ -70,6 +70,13 @@ const LEVELS = [
     name: 'Manos en equipo',
     description: 'Las dos manos se ayudan: una llama y la otra responde, o tocan acordes sencillos juntas, sin moverse de sitio.',
   },
+  {
+    id: 5,
+    title: 'Nivel 5',
+    emoji: '🎵',
+    name: 'Ritmo vivo',
+    description: 'Las dos manos ganan ritmo: aparecen las primeras notas rápidas (corcheas), la izquierda también canta la melodía y el acompañamiento se mueve, sin cambiar las manos de sitio.',
+  },
 ];
 
 // ── Compilador de la notación compacta → formato interno ──
@@ -889,7 +896,246 @@ const FAROL_DE_LA_LUNA = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, DEBAJO_UN_BOTON, CANCION_DEL_BOSQUE, PASOS_DE_GIGANTE, ECO_DE_LA_CUEVA, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA]
+// ── Campanero / Frère Jacques (Popular) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: clásico en canon adaptado a las 5 notas fijas (DO–SOL).
+// Combina eco entre manos ("¿Duermes tú?"), acompañamiento en blancas en
+// movimiento, las primeras parejas de corcheas ("Suenan las campanas") y
+// las campanadas finales alternando derecha e izquierda.
+const CAMPANERO = {
+  id: 'campanero',
+  title: 'Campanero',
+  composer: 'Popular',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🔔',
+  level: 5,
+  bpm: 76,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compás 1: "¿Duer-mes tú?" en la derecha (4 pulsos)
+      'C4:1/1', 'D4:1/2', 'E4:1/3', 'C4:1/1',
+      // compás 2: sostiene mientras la izquierda repite en eco (4 pulsos)
+      'E4:2/3', 'G4:2/5',
+      // compases 3–4: "Sue-nan las cam-pa-nas" (8 pulsos)
+      'E4:1/3', 'F4:1/4', 'G4:2/5',
+      'E4:1/3', 'F4:1/4', 'G4:2/5',
+      // compases 5–6: primeras corcheas del método (8 pulsos)
+      'G4:0.5/5', 'F4:0.5/4', 'E4:0.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3',
+      'G4:0.5/5', 'F4:0.5/4', 'E4:0.5/3', 'D4:0.5/2', 'C4:2/1',
+      // compases 7–8: "Din, dan, don" entre las dos manos (8 pulsos) → total 32
+      'C4:1/1', '&:1', 'C4:2/1',
+      'E4:1/3', 'G4:1/5', 'C4:2/1',
+    ],
+    L: [
+      // compás 1: pedal de tónica (4 pulsos)
+      'C3:4/5',
+      // compás 2: la izquierda canta el eco "¿Duer-mes tú?" (4 pulsos)
+      'C3:1/5', 'D3:1/4', 'E3:1/3', 'C3:1/5',
+      // compases 3–4: acompañamiento en blancas en movimiento (8 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'C3:2/5', 'G3:2/1',
+      // compases 5–6: acordes y pulso bajo las corcheas (8 pulsos)
+      ['C3:2/5', 'G3:2/1'], 'C3:2/5',
+      'G3:2/1', ['C3:2/5', 'G3:2/1'],
+      // compases 7–8: campana grave ("dan") y cierre en equipo (8 pulsos) → total 32
+      '&:1', 'G3:1/1', 'C3:2/5',
+      'G3:2/1', ['C3:2/5', 'G3:2/1'],
+    ],
+  },
+};
+
+// ── El expreso del sol (Original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: ritmo de tren con corcheas (ti-ti ta) y bajo en blancas.
+// En los compases 5–6 se cambian los papeles: la mano izquierda canta la
+// melodía en el registro grave mientras la derecha toca el silbato con acordes.
+const EXPRESO_DEL_SOL = {
+  id: 'expreso-del-sol',
+  title: 'El expreso del sol',
+  composer: 'Original',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🚂',
+  level: 5,
+  bpm: 78,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: arranque con parejas de corcheas (8 pulsos)
+      'C4:0.5/1', 'D4:0.5/2', 'E4:1/3', 'G4:2/5',
+      'F4:0.5/4', 'E4:0.5/3', 'D4:1/2', 'G4:2/5',
+      // compases 3–4: impulso y semicadencia (8 pulsos)
+      'E4:0.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3', 'C4:1/1',
+      'D4:2/2', 'G4:2/5',
+      // compases 5–6: cambio de papeles — derecha acompaña con silbato en acordes (8 pulsos)
+      ['E4:2/3', 'G4:2/5'], ['E4:2/3', 'G4:2/5'],
+      ['F4:2/4', 'G4:2/5'], ['E4:2/3', 'G4:2/5'],
+      // compases 7–8: llegada a la estación todos juntos (8 pulsos) → total 32
+      'G4:0.5/5', 'F4:0.5/4', 'E4:1/3', 'D4:1/2', 'E4:1/3',
+      'C4:4/1',
+    ],
+    L: [
+      // compases 1–4: ruedas del tren en blancas alternas (16 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'G3:2/1', 'D3:2/4',
+      'C3:2/5', 'E3:2/3',
+      'G3:2/1', 'D3:2/4',
+      // compases 5–6: la izquierda toma la melodía con corcheas (8 pulsos)
+      'C3:0.5/5', 'D3:0.5/4', 'E3:1/3', 'G3:2/1',
+      'F3:0.5/2', 'E3:0.5/3', 'D3:1/4', 'C3:2/5',
+      // compases 7–8: cadencia final (8 pulsos) → total 32
+      'C3:2/5', 'G3:2/1',
+      ['C3:4/5', 'G3:4/1'],
+    ],
+  },
+};
+
+// ── El reloj saltarín (Original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: contraste entre el pulso "tic-tac" en blancas y pequeñas corcheas
+// saltarinas. En los compases 3–4 la mano izquierda hereda la melodía con
+// corcheas y la derecha pasa a marcar el tic-tac.
+const RELOJ_SALTARIN = {
+  id: 'reloj-saltarin',
+  title: 'El reloj saltarín',
+  composer: 'Original',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🕰️',
+  level: 5,
+  bpm: 74,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: melodía aguda con corcheas (8 pulsos)
+      'E4:0.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3', 'C4:1/1',
+      'D4:0.5/2', 'E4:0.5/3', 'F4:1/4', 'D4:2/2',
+      // compases 3–4: la derecha marca el tic-tac mientras canta la izquierda (8 pulsos)
+      'C4:2/1', 'G4:2/5',
+      'F4:2/4', 'E4:2/3',
+      // compases 5–6: corcheas en el segundo pulso del compás (8 pulsos)
+      'G4:1/5', 'E4:0.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3',
+      'F4:1/4', 'D4:0.5/2', 'E4:0.5/3', 'F4:1/4', 'D4:1/2',
+      // compases 7–8: campanada final (8 pulsos) → total 32
+      'E4:0.5/3', 'D4:0.5/2', 'C4:1/1', 'E4:1/3', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      // compases 1–2: tic-tac grave en blancas (8 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'G3:2/1', 'D3:2/4',
+      // compases 3–4: la izquierda canta la melodía con corcheas (8 pulsos)
+      'E3:0.5/3', 'F3:0.5/2', 'G3:1/1', 'E3:1/3', 'C3:1/5',
+      'D3:0.5/4', 'E3:0.5/3', 'D3:1/4', 'C3:2/5',
+      // compases 5–6: vuelve al acompañamiento en blancas (8 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'D3:2/4', 'G3:2/1',
+      // compases 7–8: cierre con acordes (8 pulsos) → total 32
+      ['C3:2/5', 'G3:2/1'], 'G3:2/1',
+      ['C3:4/5', 'G3:4/1'],
+    ],
+  },
+};
+
+// ── Tiovivo de feria (Original) · Do mayor · 3/4 · 8 compases ──
+// Nivel 5: vals con acompañamiento en movimiento (bajo en el primer pulso +
+// quinta en los pulsos 2–3), giros de corcheas y cambio de papeles en los
+// compases 5–6 (la izquierda canta el vals y la derecha acompaña con acordes).
+const TIOVIVO_DE_FERIA = {
+  id: 'tiovivo-de-feria',
+  title: 'Tiovivo de feria',
+  composer: 'Original',
+  subtitle: 'Nivel 5 · Vals · Do mayor',
+  emoji: '🎠',
+  level: 5,
+  bpm: 72,
+  beatsPerMeasure: 3,
+  totalBeats: 24,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–4: primera vuelta del tiovivo con adorno de corcheas (12 pulsos)
+      'C4:1/1', 'E4:0.5/3', 'F4:0.5/4', 'G4:1/5',
+      'F4:1/4', 'E4:1/3', 'D4:1/2',
+      'E4:1/3', 'D4:0.5/2', 'E4:0.5/3', 'F4:1/4',
+      'E4:2/3', 'C4:1/1',
+      // compases 5–6: acordes suaves mientras la izquierda canta el vals (6 pulsos)
+      ['E4:3/3', 'G4:3/5'],
+      ['D4:3/2', 'G4:3/5'],
+      // compases 7–8: cierre luminoso con corcheas (6 pulsos) → total 24
+      'G4:0.5/5', 'F4:0.5/4', 'E4:1/3', 'D4:1/2',
+      'C4:3/1',
+    ],
+    L: [
+      // compases 1–4: bajo de vals en movimiento (negra + blanca por compás, 12 pulsos)
+      'C3:1/5', 'G3:2/1',
+      'G3:1/1', 'D3:2/4',
+      'F3:1/2', 'C3:2/5',
+      'C3:1/5', 'G3:2/1',
+      // compases 5–6: la izquierda canta la melodía del vals (6 pulsos)
+      'C3:1/5', 'D3:1/4', 'E3:1/3',
+      'F3:0.5/2', 'E3:0.5/3', 'D3:1/4', 'G3:1/1',
+      // compases 7–8: cadencia final (6 pulsos) → total 24
+      'C3:1/5', 'G3:2/1',
+      ['C3:3/5', 'G3:3/1'],
+    ],
+  },
+};
+
+// ── Pequeña serenata (Original) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: introduce el ritmo de negra con puntillo + corchea (1.5 + 0.5),
+// combinado con parejas de corcheas y una frase lírica cantada por la mano
+// izquierda en los compases 5–6 mientras la derecha acompaña con acordes.
+const PEQUENA_SERENATA = {
+  id: 'pequena-serenata',
+  title: 'Pequeña serenata',
+  composer: 'Original',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🎻',
+  level: 5,
+  bpm: 76,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: motivo con negra con puntillo + corchea (8 pulsos)
+      'E4:1.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3',
+      'F4:1.5/4', 'E4:0.5/3', 'D4:2/2',
+      // compases 3–4: subida con corcheas y cierre en tónica (8 pulsos)
+      'C4:1/1', 'D4:0.5/2', 'E4:0.5/3', 'F4:1/4', 'G4:1/5',
+      'E4:1.5/3', 'D4:0.5/2', 'C4:2/1',
+      // compases 5–6: acompaña con acordes y blancas mientras canta la izquierda (8 pulsos)
+      ['E4:2/3', 'G4:2/5'], 'C4:2/1',
+      ['D4:2/2', 'G4:2/5'], 'E4:2/3',
+      // compases 7–8: reexposición y final (8 pulsos) → total 32
+      'G4:1.5/5', 'F4:0.5/4', 'E4:1/3', 'D4:1/2',
+      'C4:4/1',
+    ],
+    L: [
+      // compases 1–4: acompañamiento cantabile en blancas (16 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'D3:2/4', 'G3:2/1',
+      'C3:2/5', 'F3:2/2',
+      'G3:2/1', 'C3:2/5',
+      // compases 5–6: la izquierda canta el tema con puntillo y corcheas (8 pulsos)
+      'E3:1.5/3', 'F3:0.5/2', 'G3:1/1', 'E3:1/3',
+      'F3:1/2', 'E3:0.5/3', 'D3:0.5/4', 'C3:2/5',
+      // compases 7–8: cierre armónico con acordes (8 pulsos) → total 32
+      ['C3:2/5', 'G3:2/1'], 'G3:2/1',
+      ['C3:4/5', 'G3:4/1'],
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, DEBAJO_UN_BOTON, CANCION_DEL_BOSQUE, PASOS_DE_GIGANTE, ECO_DE_LA_CUEVA, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA, CAMPANERO, EXPRESO_DEL_SOL, RELOJ_SALTARIN, TIOVIVO_DE_FERIA, PEQUENA_SERENATA]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──
@@ -933,6 +1179,8 @@ function validateSongs(songs = SONGS) {
     if (s.level === 2 && !(hasL && !hasR)) problems.push(`${tag}: el nivel 2 debe ser sólo mano izquierda (L)`);
     if (s.level === 3 && !(hasR && hasL)) problems.push(`${tag}: el nivel 3 debe tener las dos manos (R y L)`);
     if (s.level === 4 && !(hasR && hasL)) problems.push(`${tag}: el nivel 4 debe tener las dos manos (R y L)`);
+    if (s.level === 5 && !(hasR && hasL)) problems.push(`${tag}: el nivel 5 debe tener las dos manos (R y L)`);
+    if (s.level === 5 && !s.notes.some((n) => n.d < 1)) problems.push(`${tag}: el nivel 5 debe incluir corcheas (duración < 1)`);
   }
   return problems;
 }

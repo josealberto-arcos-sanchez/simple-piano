@@ -136,8 +136,8 @@ suite('Catálogo de canciones', () => {
     assert(Array.isArray(problems) && problems.length === 0,
       'problemas encontrados:\n' + problems.join('\n'));
   });
-  test('hay 21 canciones con id único', () => {
-    assert(SONGS.length === 21, `esperaba 21 canciones, hay ${SONGS.length}`);
+  test('hay 26 canciones con id único', () => {
+    assert(SONGS.length === 26, `esperaba 26 canciones, hay ${SONGS.length}`);
     const ids = new Set(SONGS.map((s) => s.id));
     assert(ids.size === SONGS.length, 'hay ids repetidos');
   });
@@ -265,12 +265,13 @@ suite('Simulación de partidas completas (Game._step)', () => {
 // ── E. Modos por nivel (todas las canciones) ──
 suite('Niveles: modos por canción', () => {
   // Niveles 1 y 2: una sola mano (escuchar · su mano · libre).
-  // Niveles 3 y 4: dos manos (los cinco modos).
+  // Niveles 3, 4 y 5: dos manos (los cinco modos).
   const esperado = {
     1: ['listen', 'rh', 'free'],
     2: ['listen', 'lh', 'free'],
     3: ['listen', 'rh', 'lh', 'both', 'free'],
     4: ['listen', 'rh', 'lh', 'both', 'free'],
+    5: ['listen', 'rh', 'lh', 'both', 'free'],
   };
   test('cada canción ofrece los modos de su nivel', () => {
     for (const s of SONGS) {
