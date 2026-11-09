@@ -89,7 +89,7 @@ body {
 }
 .home-actions { display: flex; gap: 10px; align-items: center; }
 
-.home-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 16px; }
+.home-main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 16px; }
 
 .song-list {
   display: grid;
@@ -160,6 +160,7 @@ body {
 /* ── niveles: menú principal y detalle ── */
 .levels-view {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -167,6 +168,7 @@ body {
   width: 100%;
   padding: 0 16px 16px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .levels-title {
   margin: 0 0 6px;
@@ -218,6 +220,7 @@ body {
 
 .level-view {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -225,9 +228,11 @@ body {
   width: 100%;
   padding: 0 16px 16px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .song-view {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -235,6 +240,7 @@ body {
   width: 100%;
   padding: 0 16px 16px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .level-header {
   display: flex;
@@ -386,14 +392,17 @@ body {
   background: var(--bg-overlay);
   backdrop-filter: blur(6px);
   display: flex;
-  align-items: center;
   justify-content: center;
   z-index: 20;
   padding: 16px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
+/* margin:auto (y no align-items:center) centra el panel, pero si no cabe
+   no recorta su parte superior: el overlay puede desplazarse hasta ella. */
 .panel {
   position: relative;
+  margin: auto;
   width: min(520px, 96vw);
   background: linear-gradient(180deg, var(--bg-panel-top), var(--bg-panel-bottom));
   border: 1px solid rgba(255, 255, 255, 0.14);

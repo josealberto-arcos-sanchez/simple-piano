@@ -64,7 +64,7 @@ test('menú principal: una tarjeta por nivel, todas abiertas, con sus estrellas 
     '⭐ 0 / 36',
     '⭐ 0 / 48',
     '⭐ 0 / 60',
-    '⭐ 0 / 60',
+    '⭐ 0 / 84',
   ]);
   expect(errores).toEqual([]);
 });
@@ -176,5 +176,39 @@ test('completar un modo suma estrellas y "Siguiente" salta al modo correcto', as
 
   await page.locator('#btn-back-songs').click();
   await expect(page.locator('#level-stars')).toHaveText('⭐ 3 / 36');
+  expect(errores).toEqual([]);
+});
+
+test('en pantallas bajas, el listado de canciones y los overlays se pueden desplazar', async ({ page }) => {
+  const errores = vigilarErrores(page);
+  await page.setViewportSize({ width: 700, height: 420 });
+  await page.goto('/');
+  await primerJugador(page, 'Ana');
+
+  // Nivel 5 (último del menú): debe poder alcanzarse desplazando el menú.
+  const nivel5 = page.locator('#level-list .level-card').nth(4);
+  await nivel5.scrollIntoViewIfNeeded();
+  await expect(nivel5).toBeInViewport();
+  await nivel5.click();
+
+  // Nivel 5 (7 canciones): el listado no cabe y debe poder recorrerse entero.
+  const vista = page.locator('#level-view');
+  await expect(vista).toBeVisible();
+  expect(await vista.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  const ultima = page.locator('#song-list .song-list-card').last();
+  await expect(ultima).not.toBeInViewport();
+  await ultima.scrollIntoViewIfNeeded();
+  await expect(ultima).toBeInViewport();
+
+  // Overlay de conexión: su botón de cerrar (arriba) y el de modo prueba (abajo) deben ser alcanzables.
+  await page.locator('#btn-back-levels').click();
+  await page.locator('#midi-chip').click();
+  const overlay = page.locator('#connect-overlay');
+  await expect(overlay).toBeVisible();
+  expect(await overlay.evaluate((el) => el.scrollHeight > el.clientHeight)).toBe(true);
+  await page.locator('#connect-dev').scrollIntoViewIfNeeded();
+  await expect(page.locator('#connect-dev')).toBeInViewport();
+  await page.locator('#connect-close').click();
+  await expect(overlay).toBeHidden();
   expect(errores).toEqual([]);
 });

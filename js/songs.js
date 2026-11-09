@@ -1135,7 +1135,104 @@ const PEQUENA_SERENATA = {
   },
 };
 
-const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, DEBAJO_UN_BOTON, CANCION_DEL_BOSQUE, PASOS_DE_GIGANTE, ECO_DE_LA_CUEVA, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA, CAMPANERO, EXPRESO_DEL_SOL, RELOJ_SALTARIN, TIOVIVO_DE_FERIA, PEQUENA_SERENATA]
+// ── El pequeño tamborilero (Popular) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: villancico clásico adaptado a las 5 notas fijas (DO–SOL).
+// Combina negra con puntillo + corchea (1.5 + 0.5), el redoble "ro-po-pom-pom"
+// en corcheas, bajo de tambor en blancas alternas y cambio de papeles en los
+// compases 5–6 (la izquierda canta el redoble y la derecha acompaña con acordes).
+const PEQUENO_TAMBORILERO = {
+  id: 'pequeno-tamborilero',
+  title: 'El pequeño tamborilero',
+  composer: 'Popular',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🥁',
+  level: 5,
+  bpm: 74,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: "El ca-mi-no... ro-po-pom-pom" (8 pulsos)
+      'C4:1.5/1', 'D4:0.5/2', 'E4:1/3', 'E4:1/3',
+      'E4:0.5/3', 'F4:0.5/4', 'E4:1/3', 'D4:2/2',
+      // compases 3–4: "que lle-va a Be-lén... ro-po-pom-pom" (8 pulsos)
+      'C4:1.5/1', 'D4:0.5/2', 'E4:1/3', 'G4:1/5',
+      'F4:0.5/4', 'E4:0.5/3', 'D4:1/2', 'C4:2/1',
+      // compases 5–6: acompaña con campanitas mientras el tambor grave canta (8 pulsos)
+      ['E4:2/3', 'G4:2/5'], ['F4:2/4', 'G4:2/5'],
+      ['E4:2/3', 'G4:2/5'], 'D4:2/2',
+      // compases 7–8: redoble final en equipo (8 pulsos) → total 32
+      'E4:1.5/3', 'F4:0.5/4', 'G4:1/5', 'E4:1/3',
+      'F4:0.5/4', 'E4:0.5/3', 'D4:1/2', 'C4:2/1',
+    ],
+    L: [
+      // compases 1–4: pulso de tambor en blancas en movimiento (16 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'G3:2/1', 'D3:2/4',
+      'C3:2/5', 'E3:2/3',
+      'G3:2/1', 'C3:2/5',
+      // compases 5–6: la izquierda canta el "ro-po-pom-pom" con corcheas (8 pulsos)
+      'G3:0.5/1', 'F3:0.5/2', 'E3:1/3', 'G3:2/1',
+      'F3:0.5/2', 'E3:0.5/3', 'D3:1/4', 'G3:2/1',
+      // compases 7–8: cierre con tambor y acorde final (8 pulsos) → total 32
+      'C3:2/5', 'G3:2/1',
+      'G3:2/1', ['C3:2/5', 'G3:2/1'],
+    ],
+  },
+};
+
+// ── La burrita de Belén (Tradicional) · Do mayor · 4/4 · 8 compases ──
+// Nivel 5: guiño a "Hacia Belén va una burra, rin, rin".
+// Juega con parejas de corcheas para el trote alegre y el cómico "¡rin, rin!"
+// pasando de una mano a otra; en los compases 5–6 la izquierda toma la melodía
+// mientras la derecha contesta con campanillas y acordes.
+const BURRITA_DE_BELEN = {
+  id: 'burrita-de-belen',
+  title: 'La burrita de Belén',
+  composer: 'Tradicional',
+  subtitle: 'Nivel 5 · Do mayor',
+  emoji: '🫏',
+  level: 5,
+  bpm: 78,
+  beatsPerMeasure: 4,
+  totalBeats: 32,
+  whiteFrom: 48,           // DO grave
+  whiteTo: 72,             // DO agudo → 15 teclas blancas
+  notes: {
+    R: [
+      // compases 1–2: trote alegre y respuesta al "¡rin, rin!" grave (8 pulsos)
+      'C4:0.5/1', 'D4:0.5/2', 'E4:1/3', 'F4:1/4', 'G4:1/5',
+      'E4:2/3', 'G4:1/5', 'E4:1/3',
+      // compases 3–4: "lle-va su cho-co-la-te-ra, ¡rin, rin!" (8 pulsos)
+      'F4:0.5/4', 'E4:0.5/3', 'D4:1/2', 'E4:1/3', 'F4:1/4',
+      'D4:2/2', 'G4:0.5/5', 'F4:0.5/4', 'E4:1/3',
+      // compases 5–6: campanillas y acordes mientras canta la izquierda (8 pulsos)
+      ['E4:2/3', 'G4:2/5'], 'G4:1/5', 'E4:1/3',
+      ['D4:2/2', 'G4:2/5'], ['E4:2/3', 'G4:2/5'],
+      // compases 7–8: trote final con las dos manos juntas (8 pulsos) → total 32
+      'G4:0.5/5', 'F4:0.5/4', 'E4:1/3', 'D4:0.5/2', 'E4:0.5/3', 'F4:1/4',
+      'E4:1/3', 'D4:1/2', 'C4:2/1',
+    ],
+    L: [
+      // compases 1–2: paso en blancas y "¡rin, rin!" en el registro grave (8 pulsos)
+      'C3:2/5', 'G3:2/1',
+      'G3:0.5/1', 'E3:0.5/3', 'C3:1/5', 'C3:2/5',
+      // compases 3–4: acompañamiento en blancas en movimiento (8 pulsos)
+      'G3:2/1', 'D3:2/4',
+      'G3:2/1', 'C3:2/5',
+      // compases 5–6: la izquierda canta la melodía con corcheas (8 pulsos)
+      'C3:0.5/5', 'D3:0.5/4', 'E3:1/3', 'G3:2/1',
+      'F3:0.5/2', 'E3:0.5/3', 'D3:1/4', 'C3:2/5',
+      // compases 7–8: cadencia final en equipo (8 pulsos) → total 32
+      'C3:2/5', 'G3:2/1',
+      'G3:2/1', ['C3:2/5', 'G3:2/1'],
+    ],
+  },
+};
+
+const SONGS = [ODE_TO_JOY, UN_PEQUENO_SUENO, PRIMER_RAYO_DE_SOL, DULCE_NAVIDAD, MARY_CORDERITO, PAN_CALIENTE, CLARO_DE_LUNA, ABEJA_VIAJERA, GOTITAS_DE_LLUVIA, SUBE_LA_ESCALERA, TREN_MADERA, RONDA_SOL, DEBAJO_UN_BOTON, CANCION_DEL_BOSQUE, PASOS_DE_GIGANTE, ECO_DE_LA_CUEVA, PREGUNTAS_RESPUESTAS, VALS_DE_LAS_NUBES, CUANDO_LOS_SANTOS, PUENTE_DE_AMIGOS, FAROL_DE_LA_LUNA, CAMPANERO, EXPRESO_DEL_SOL, RELOJ_SALTARIN, TIOVIVO_DE_FERIA, PEQUENA_SERENATA, PEQUENO_TAMBORILERO, BURRITA_DE_BELEN]
   .map((s) => ({ ...s, notes: compileNotes(s.notes) }));
 
 // ── Validación del catálogo (modo dev) ──
