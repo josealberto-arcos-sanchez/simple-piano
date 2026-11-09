@@ -118,7 +118,7 @@ Al tocar el código de niveles, comprueba con el navegador:
 - [ ] Menú principal: una tarjeta por nivel, todas abiertas (sin candados).
 - [ ] Estrellas por nivel correctas (máximo = suma de sus canciones, 3 estrellas por
       modo jugable): Nivel 1 = 0/36 (6 canciones), Nivel 2 = 0/36 (6 canciones),
-      Nivel 3 = 0/48 (4 canciones), Nivel 4 = 0/60 (5 canciones), Nivel 5 = 0/60 (5 canciones).
+      Nivel 3 = 0/48 (4 canciones), Nivel 4 = 0/60 (5 canciones), Nivel 5 = 0/84 (7 canciones).
 - [ ] Nivel 1 sólo muestra Escuchar · Mano derecha · ¡Toca libre! (sin
       "Mano izquierda" ni "¡Las dos manos!").
 - [ ] Nivel 3, Nivel 4 y Nivel 5 muestran los 5 modos.
@@ -128,6 +128,9 @@ Al tocar el código de niveles, comprueba con el navegador:
 - [ ] Tras `reload`, cada jugador vuelve a la misma vista (menú o detalle),
       mismo nivel y misma canción.
 - [ ] Cambiar de jugador restaura la vista de cada uno independientemente.
+- [ ] En pantallas bajas (p. ej. 700×420), el menú de niveles, el listado de canciones
+      y los overlays se desplazan: se llega al último nivel, a la última canción y a
+      los botones de arriba y de abajo de los overlays.
 - [ ] Consola sin errores.
 
 ## 8. CI automatizada (GitHub Actions)
@@ -153,7 +156,7 @@ dependencia de desarrollo:
 
 - `tests/smoke.spec.js`: abre `test.html` y exige que la suite pase al 100%.
 - `tests/niveles.spec.js`: recorre la app real (menú, modos por nivel, memoria tras
-  recargar, cambio de jugador y una partida completa con "Siguiente"). Bloquea el
+  recargar, cambio de jugador, desplazamiento en pantallas bajas y una partida completa con "Siguiente"). Bloquea el
   service worker (`serviceWorkers: 'block'`) porque su recarga interrumpe los formularios.
 
 Los casos de la checklist de niveles (§7) que son lógica pura están en `test.html`

@@ -169,6 +169,7 @@ const HomeUI = (() => {
     if (v === 'levels') renderLevels();
     else if (v === 'level') renderLevelView();
     else renderSongView();
+    $({ levels: '#levels-view', level: '#level-view', song: '#song-view' }[v]).scrollTop = 0;
   }
 
   return { init, show, updateChip, updateUserChip };

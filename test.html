@@ -136,8 +136,8 @@ suite('Catálogo de canciones', () => {
     assert(Array.isArray(problems) && problems.length === 0,
       'problemas encontrados:\n' + problems.join('\n'));
   });
-  test('hay 26 canciones con id único', () => {
-    assert(SONGS.length === 26, `esperaba 26 canciones, hay ${SONGS.length}`);
+  test('hay 28 canciones con id único', () => {
+    assert(SONGS.length === 28, `esperaba 28 canciones, hay ${SONGS.length}`);
     const ids = new Set(SONGS.map((s) => s.id));
     assert(ids.size === SONGS.length, 'hay ids repetidos');
   });

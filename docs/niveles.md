@@ -135,7 +135,9 @@ canción no las cumple.
 - **Ejemplos de canciones:** *Campanero* (canon y primeras corcheas), *El expreso
   del sol* (bajo de tren en blancas y cambio de papeles), *El reloj saltarín*
   (pulso tic-tac frente a corcheas en ambas manos), *Tiovivo de feria* (vals con
-  bajo en movimiento), *Pequeña serenata* (negra con puntillo + corchea).
+  bajo en movimiento), *Pequeña serenata* (negra con puntillo + corchea), *El
+  pequeño tamborilero* (redoble «ro-po-pom-pom» con puntillo y cambio de papeles),
+  *La burrita de Belén* (trote navideño con el «¡rin, rin!» entre las dos manos).
 
 ---
 
